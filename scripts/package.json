@@ -1,0 +1,20 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "main": "create-databases.js",
+  "scripts": {
+    "cleanup": "node cleanup-ports.js",
+    "start": "node start-all-services.js",
+    "test-db": "node test-postgresql.js",
+    "create-db": "node create-databases.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3"
+  },
+  "description": ""
+}

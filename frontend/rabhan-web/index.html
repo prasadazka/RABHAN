@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="RABHAN - Saudi Arabia's Solar Energy BNPL Platform. Finance your solar installation with SAMA-compliant Buy Now, Pay Later solutions." />
+  <meta name="keywords" content="solar energy, BNPL, Saudi Arabia, renewable energy, financing, Vision 2030" />
+  <meta name="author" content="RABHAN" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="RABHAN - Solar Energy BNPL Platform" />
+  <meta property="og:description" content="Saudi Arabia's first SAMA-compliant solar energy financing platform" />
+  <meta property="og:image" content="/rabhan_logo.svg" />
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:title" content="RABHAN - Solar Energy BNPL Platform" />
+  <meta property="twitter:description" content="Saudi Arabia's first SAMA-compliant solar energy financing platform" />
+  <meta property="twitter:image" content="/rabhan_logo.svg" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/rabhan_logo.svg" />
+  
+  <!-- Preconnect to optimize font loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+  <!-- Load fonts optimized for Arabic and English -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- Al-Awwal Font - Saudi Ministry of Culture Typeface -->
+  <link href="/fonts/al-awwal.css" rel="stylesheet" />
+  
+  <!-- Critical CSS variables -->
+  <style>
+    :root {
+      /* Primary theme color */
+      --color-primary: #3eb2b1;
+      --color-primary-rgb: 62, 178, 177;
+      
+      /* Performance optimizations */
+      --font-display: swap;
+    }
+    
+    /* Critical loading styles */
+    #root {
+      min-height: 100vh;
+      position: relative;
+    }
+    
+    /* Loading spinner */
+    .loading-spinner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3eb2b1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      z-index: 9999;
+    }
+    
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
+    /* Hide loading when app loads */
+    .app-loaded .loading-spinner {
+      display: none;
+    }
+    
+    /* Performance optimizations */
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Al-Awwal', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+    }
+    
+    /* RTL support */
+    [dir="rtl"] body {
+      font-family: 'Al-Awwal', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+  </style>
+  
+  <title>RABHAN - Solar Energy BNPL Platform</title>
+</head>
+<body>
+  <!-- Loading indicator -->
+  <div class="loading-spinner" id="loading-spinner"></div>
+  
+  <!-- React app root -->
+  <div id="root"></div>
+  
+  <!-- Performance monitoring -->
+  <script>
+    // Hide loading spinner when app loads
+    window.addEventListener('load', function() {
+      document.body.classList.add('app-loaded');
+    });
+    
+    // Performance monitoring for development
+    if (typeof performance !== 'undefined' && performance.mark) {
+      performance.mark('app-start');
+    }
+  </script>
+  
+  <!-- Module script will be injected by Vite -->
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

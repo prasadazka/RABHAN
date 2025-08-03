@@ -1,0 +1,68 @@
+/* Al-Awwal Font - Saudi Ministry of Culture Typeface */
+/* The First - Inspired by inscriptions from the first Hijri century */
+
+@font-face {
+  font-family: 'Al-Awwal';
+  src: url('./Al-Awwal-Regular.woff2') format('woff2'),
+       url('./Al-Awwal-Regular.woff') format('woff'),
+       url('./Al-Awwal-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@font-face {
+  font-family: 'Al-Awwal';
+  src: url('./Al-Awwal-Light.woff2') format('woff2'),
+       url('./Al-Awwal-Light.woff') format('woff'),
+       url('./Al-Awwal-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@font-face {
+  font-family: 'Al-Awwal';
+  src: url('./Al-Awwal-Medium.woff2') format('woff2'),
+       url('./Al-Awwal-Medium.woff') format('woff'),
+       url('./Al-Awwal-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@font-face {
+  font-family: 'Al-Awwal';
+  src: url('./Al-Awwal-SemiBold.woff2') format('woff2'),
+       url('./Al-Awwal-SemiBold.woff') format('woff'),
+       url('./Al-Awwal-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@font-face {
+  font-family: 'Al-Awwal';
+  src: url('./Al-Awwal-Bold.woff2') format('woff2'),
+       url('./Al-Awwal-Bold.woff') format('woff'),
+       url('./Al-Awwal-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@font-face {
+  font-family: 'Al-Awwal';
+  src: url('./Al-Awwal-ExtraBold.woff2') format('woff2'),
+       url('./Al-Awwal-ExtraBold.woff') format('woff'),
+       url('./Al-Awwal-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF;
+}

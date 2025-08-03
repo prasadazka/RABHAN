@@ -1,0 +1,74 @@
+# RABHAN Solar BNPL - Microservices Implementation Table
+
+## 🚀 **PHASE 1: MVP FOUNDATION (Months 1-6)**
+
+| Microservice | Key Features | Tech Stack | Main Database Tables | API Endpoints |
+|--------------|-------------|------------|---------------------|---------------|
+| **User Management Service** | • User registration & login<br>• KYC document upload<br>• Profile management<br>• Email/SMS verification<br>• Basic authentication | React + Express.js + PostgreSQL + Docker | • Users<br>• UserProfiles<br>• UserDocuments<br>• UserSessions | • POST /api/users/register<br>• POST /api/users/login<br>• GET /api/users/profile<br>• POST /api/users/upload-document |
+| **Contractor Management Service** | • Contractor registration<br>• Business license verification<br>• Certification upload<br>• Service area management<br>• Performance tracking | React + Express.js + PostgreSQL + Docker | • Contractors<br>• ContractorCertifications<br>• ContractorServiceAreas<br>• ContractorPerformance | • POST /api/contractors/register<br>• POST /api/contractors/upload-cert<br>• GET /api/contractors/profile<br>• PUT /api/contractors/service-areas |
+| **Solar Calculator Service** | • Electricity consumption analysis<br>• Solar system sizing<br>• Savings estimation<br>• ROI calculations<br>• Report generation | React + Express.js + PostgreSQL + Docker | • Calculations<br>• SolarProducts<br>• CalculationHistory<br>• SavingsReports | • POST /api/calculator/analyze<br>• GET /api/calculator/products<br>• GET /api/calculator/history<br>• POST /api/calculator/report |
+| **Marketplace Service** | • Product catalog<br>• Vendor listings<br>• Product search & filtering<br>• Inventory management<br>• SASO certificate validation | React + Express.js + PostgreSQL + Docker | • Products<br>• ProductImages<br>• ProductCategories<br>• ProductInventory | • GET /api/marketplace/products<br>• POST /api/marketplace/products<br>• GET /api/marketplace/search<br>• PUT /api/marketplace/inventory |
+| **Quote Management Service** | • Quote requests<br>• Contractor matching<br>• Quote submission<br>• Price validation (2000 SAR/kWp)<br>• 10% overprice addition | React + Express.js + PostgreSQL + Docker | • QuoteRequests<br>• Quotes<br>• QuoteMatching<br>• QuoteApprovals | • POST /api/quotes/request<br>• GET /api/quotes/matches<br>• POST /api/quotes/submit<br>• PUT /api/quotes/approve |
+| **Admin Management Service** | • Admin dashboard<br>• KYC approvals<br>• Role-based access<br>• System configuration<br>• Analytics & reporting | React + Express.js + PostgreSQL + Docker | • Admins<br>• AdminRoles<br>• ApprovalQueue<br>• SystemConfig | • GET /api/admin/dashboard<br>• POST /api/admin/approve-kyc<br>• GET /api/admin/pending<br>• PUT /api/admin/config |
+| **Notification Service** | • Email notifications<br>• SMS alerts<br>• In-app notifications<br>• Push notifications<br>• Template management | React + Express.js + PostgreSQL + Docker | • Notifications<br>• NotificationTemplates<br>• NotificationSettings<br>• NotificationLogs | • POST /api/notifications/send<br>• GET /api/notifications/user/{id}<br>• PUT /api/notifications/read<br>• POST /api/notifications/subscribe |
+| **File Management Service** | • Document upload<br>• Image processing<br>• File validation<br>• Security scanning<br>• CDN integration | React + Express.js + PostgreSQL + Docker | • Files<br>• FileCategories<br>• FileAccess<br>• FileBackups | • POST /api/files/upload<br>• GET /api/files/{id}<br>• DELETE /api/files/{id}<br>• POST /api/files/validate |
+
+---
+
+## 🔄 **PHASE 2: INTEGRATIONS & WORKFLOW (Months 7-12)**
+
+| Microservice | Key Features | Tech Stack | Main Database Tables | API Endpoints |
+|--------------|-------------|------------|---------------------|---------------|
+| **Government Integration Service** | • NAFATH OAuth 2.0<br>• SEC electricity data<br>• ZATCA tax integration<br>• Absher verification<br>• SSO implementation | React + Express.js + PostgreSQL + Docker | • GovernmentSessions<br>• SECData<br>• ZATCATransactions<br>• AbsherVerifications | • POST /api/government/nafath/auth<br>• GET /api/government/sec/consumption<br>• POST /api/government/zatca/invoice<br>• POST /api/government/absher/verify |
+| **Energy Monitoring Service** | • Real-time production tracking<br>• Historical performance<br>• Savings calculations<br>• Performance alerts<br>• Inverter integration (RS485/MODBUS) | React + Express.js + PostgreSQL + Docker | • EnergyProduction<br>• EnergyConsumption<br>• PerformanceMetrics<br>• EnergyAlerts | • GET /api/energy/production/{id}<br>• GET /api/energy/consumption/{id}<br>• GET /api/energy/savings/{id}<br>• POST /api/energy/alerts |
+| **Security Operations Service** | • SOC functions<br>• SIEM integration<br>• Threat intelligence<br>• Incident response<br>• MITRE ATT&CK framework | React + Express.js + PostgreSQL + Docker | • SecurityEvents<br>• ThreatIntelligence<br>• SecurityIncidents<br>• ComplianceChecks | • POST /api/security/events<br>• GET /api/security/threats<br>• POST /api/security/incidents<br>• GET /api/security/compliance |
+| **Advanced Analytics Service** | • Usage analytics<br>• Performance metrics<br>• Predictive analytics<br>• Market trends<br>• Customer insights | React + Express.js + PostgreSQL + Docker | • AnalyticsEvents<br>• BusinessMetrics<br>• PredictiveModels<br>• MarketData | • POST /api/analytics/track<br>• GET /api/analytics/dashboard<br>• GET /api/analytics/predictions<br>• GET /api/analytics/trends |
+
+---
+
+## 🚀 **PHASE 3: BNPL & PRODUCTION (Months 13-18)**
+
+| Microservice | Key Features | Tech Stack | Main Database Tables | API Endpoints |
+|--------------|-------------|------------|---------------------|---------------|
+| **BNPL Management Service** | • BNPL eligibility (SAR 5K limit)<br>• Installment plans (12/18/24 months)<br>• Credit limit enforcement<br>• SAMA compliance<br>• Resident validation | React + Express.js + PostgreSQL + Docker | • BNPLApplications<br>• InstallmentPlans<br>• CreditLimits<br>• BNPLTransactions | • POST /api/bnpl/apply<br>• GET /api/bnpl/eligibility<br>• GET /api/bnpl/installments<br>• POST /api/bnpl/payment |
+| **Payment Gateway Service** | • Multiple gateways (MADA, STC Pay)<br>• PCI-DSS compliance<br>• Fraud detection<br>• Transaction processing<br>• SADAD integration | React + Express.js + PostgreSQL + Docker | • PaymentMethods<br>• Transactions<br>• PaymentGateways<br>• FraudChecks | • POST /api/payments/process<br>• GET /api/payments/methods<br>• POST /api/payments/add-method<br>• POST /api/payments/refund |
+| **Credit Assessment Service** | • SIMAH integration<br>• Alternative data<br>• Credit scoring<br>• Risk assessment<br>• Automated decisions | React + Express.js + PostgreSQL + Docker | • CreditReports<br>• AlternativeData<br>• CreditDecisions<br>• RiskModels | • GET /api/credit/report/{id}<br>• POST /api/credit/assess<br>• GET /api/credit/score/{id}<br>• POST /api/credit/decision |
+| **Financial Reporting Service** | • SAMA regulatory reports<br>• Monthly BNPL reporting<br>• Tax compliance<br>• Audit trails<br>• Board-level reports | React + Express.js + PostgreSQL + Docker | • SAMAReports<br>• FinancialStatements<br>• TaxReports<br>• AuditTrails | • GET /api/financial/sama-reports<br>• POST /api/financial/statement<br>• GET /api/financial/tax<br>• GET /api/financial/audit |
+| **Wallet & Commission Service** | • Contractor wallets<br>• Commission calculations (15%)<br>• Payment processing<br>• VAT invoice generation<br>• Financial reconciliation | React + Express.js + PostgreSQL + Docker | • ContractorWallets<br>• Commissions<br>• WalletTransactions<br>• Invoices | • GET /api/wallet/balance/{id}<br>• POST /api/wallet/withdraw<br>• GET /api/wallet/transactions<br>• POST /api/commissions/calculate |
+
+---
+
+## 📋 **KEY COMPLIANCE REQUIREMENTS BY PHASE**
+
+| Phase | Compliance Focus | Target Maturity | Key Requirements |
+|-------|------------------|----------------|------------------|
+| **Phase 1** | Foundation Security | SAMA CSF Level 2 | • PDPL implementation<br>• Basic encryption (AES-256)<br>• Zero-trust architecture<br>• Vulnerability management |
+| **Phase 2** | Government Integration | SAMA CSF Level 3 | • NAFATH OAuth 2.0<br>• SEC/ZATCA/Absher APIs<br>• ISO standards preparation<br>• SOC implementation |
+| **Phase 3** | Financial Compliance | SAMA CSF Level 4 | • SAMA BNPL rules<br>• Open Banking Framework<br>• AML/CTF program<br>• Production certifications |
+
+---
+
+## 🔧 **DEPLOYMENT ARCHITECTURE**
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Frontend** | React.js (Web) + React Native (Mobile) | User interfaces |
+| **Backend** | Express.js + Node.js | API services |
+| **Database** | PostgreSQL + Redis | Data storage & caching |
+| **Containers** | Docker + Kubernetes | Service orchestration |
+| **API Gateway** | Kong/AWS API Gateway | Request routing & security |
+| **Message Queue** | RabbitMQ | Async communication |
+| **Monitoring** | Prometheus + Grafana | System monitoring |
+| **Security** | Istio + WAF + HSM | Service mesh & security |
+
+---
+
+## 📊 **IMPLEMENTATION TIMELINE**
+
+| Timeline | Phase | Deliverables |
+|----------|-------|-------------|
+| **Months 1-6** | Phase 1 MVP | 8 core microservices + basic compliance |
+| **Months 7-12** | Phase 2 Integration | 4 additional services + government APIs |
+| **Months 13-18** | Phase 3 Production | 5 financial services + full compliance |
+
+**Total:** 17 microservices, 48 compliance requirements, full SAMA certification

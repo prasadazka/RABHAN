@@ -1,0 +1,17 @@
+{
+  "name": "services",
+  "version": "1.0.0",
+  "main": "verification-manager.service.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "types": "./verification-manager.service.d.ts",
+  "description": "",
+  "dependencies": {
+    "@types/pg": "^8.15.5",
+    "pg": "^8.16.3"
+  }
+}

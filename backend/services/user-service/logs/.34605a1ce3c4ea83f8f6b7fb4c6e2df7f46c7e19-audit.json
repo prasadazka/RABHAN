@@ -1,0 +1,40 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 7
+    },
+    "auditLog": "logs\\.34605a1ce3c4ea83f8f6b7fb4c6e2df7f46c7e19-audit.json",
+    "files": [
+        {
+            "date": 1753686539611,
+            "name": "logs\\performance-2025-07-28.log",
+            "hash": "badbc152b4b0dfcee7518e1fc940bb0d74c721dd39e91ea0e463e9fb5a521574"
+        },
+        {
+            "date": 1753937829361,
+            "name": "logs\\performance-2025-07-31.log",
+            "hash": "82e572b161dffa54e9b89e0e19dfd19c363fc2d79aa811b19da037a1197caa00"
+        },
+        {
+            "date": 1753986718026,
+            "name": "logs\\performance-2025-08-01.log",
+            "hash": "85bfa0c559a01f8d187c4d61981870f7f93fe180921296a3de9c4edf4c402302"
+        },
+        {
+            "date": 1754108780023,
+            "name": "logs\\performance-2025-08-02.log",
+            "hash": "2b2bcd6ee4e501e4d7e774d5e0b9fc7b6b0af2c1ba407297e0699f54196dd3a3"
+        },
+        {
+            "date": 1754161770858,
+            "name": "logs\\performance-2025-08-03.log",
+            "hash": "6c51670c108d0ca948f2cc7d4cfe6c90a6a168577fa3def63558fa64497fcc38"
+        },
+        {
+            "date": 1754248446977,
+            "name": "logs/performance-2025-08-03.log",
+            "hash": "997d9af5e5cc8ac1043220bd60ddfc53daf651d95412ab277dc285b3fa90ba4a"
+        }
+    ],
+    "hashType": "sha256"
+}

@@ -1,0 +1,365 @@
+RABHAN "Business/Technical" Proposed Requirements "Beta Version"
+RABHAN Project Main Scope: Development of a Fintech BNPL Platform for Solar Energy Financing
+RABHAN Location: Jeddah, Saudi Arabia (Platform should support bilingual use: Arabic and English).
+RABHAN Overview: The objective is to develop a web and mobile platform that allows users & vendors to demand and supply solar energy solution suitable to their requirement.
+The platform will include three primary user groups:
+· End Users (homeowners or businesses/industrial owners seeking solar solutions) · Solar vendors (approved contractors and equipment supplier who submit quotations,
+supply products and/or complete installation) · Admin & Internal Teams (Managing entire system, loan management, contractor
+approval, end user support)
+End Users
+1. Browse the platform for solar systems via Solar vendor/contractor's portal. 2. Asses their current energy consumption and predict the savings through the Solar
+Calculator in the platform. 3. Browse other needed devices and accessories related to solar system via vendors
+portal. 4. Receive quotations from approved solar contractors in the same geographical
+location. 5. Apply for BNPL financing to install solar energy systems based on their selected
+contractor/products. 6. Track their loan processing and approve energy network installation. 7. Make monthly payments through payment getaways and monitor the new energy
+system performance.
+Vendors (Contractors)
+1. Show and present their products and services through the platform with the geographical area they can cover.
+2. Receive the quotation request from the users detailing current consumption, exact location, free area for solar network installation and format quotations for them up on.
+3. Schedule inspection, installing and maintenance visits with the users through the platform.
+4. Once quotation approved, Upload contract and request for loan approval repayment schedule.
+5. Issue VAT invoices to the platform minus the platform commission. 6. Create wallets on the platform and follow up their claims.
+Page 1 of 14
+
+Modules & Functional Scope "Proposed Beta Version"
+User Portal (End Customer)
+1. User Registration & Onboarding · Start: User visits RABHAN platform and use RABHAN solar calculator to decide to proceed or not. · Step 1: User selects "Sign Up" or "Register". · Step 2: User agrees on terms and conditions of using the platform by selecting that he read and acknowledged all. · Step 3: User provides essential personal details (name, email, phone, etc.). · Step 4: User verifies email/phone (OTP or link). · Step 5: User completes docs ­ KYC (upload ID, address proof) and signs in through a link of NAFATH (we must have integration with NAFATH) · Step 6: User sets up a payment method (bank account, credit/debit card). · Step 7: Through the integration with SAMA (or SIMAH), RABHAN categorizes the Users into two categories: 1. Green flag Users: who have a clean credit report, they can proceed using BNPL option. 2. Red flag Users: who have credit score issues, they can proceed using only upfront payment option. · End: User account is created and ready to use.
+2. Requesting Solar Quotes & Contractor Matching
+· Start: User logs into RABHAN and selects "Fill required data to get a solar quotation"
+· Step 1: User inputs property details and fills in the required data: 1. Electricity consumption of the last 12 months / Or user can sign in through a link to Electricity Saudi Company (Which we must have integration with). 2. property details (roof size, GPS location).
+· Step 2: User selects "Get a Solar Quote" and approves receiving visits from inspection teams from several contractors.
+· Step 3: RABHAN matches users with pre-vetted contractors in their area (ranked as per their performance) and informs the user of the selected available contractors in his area to choose only three contractors.
+· Step 4: User chooses the available date and time for each visit. (the dashboard of each contractor must have a calendar of the available dates that the user can choose from).
+· Step 5: User must acknowledge and accept the Penalty Fees of not proceeding after having the inspection visits.
+· Step 6: Contractor sends the inspection team to visit the user's property to check the suitability of installing the solar system as scheduled earlier.
+Page 2 of 14
+
+· Step 7: Contractors provide customized quotes (system power size, system average monthly power production, system total & detailed cost, installation timeline, system hardware components and specs, grantee and warranty terms, maintenance terms) to RABHAN Platform.
+· Step 8: The process is proceeding or not upon the following: 1. If the three contractors reported RABHAN that the property is not suitable for solar installation, then RABHAN apologizes to the user and notifies him of the status. 2. If at least one contractor provided a quote, RABHAN notifies the user to choose other contractors form the proposed list to complete the three quotes, or to accept one of the provided already.
+· Step 9: RABHAN reviews the quotes and pushes them to the user (in case of approval) or refer back to the contractor to edit the quote.
+· Step 10: User reviews the quotes and selects one of them. · End: Chosen contractor is notified of the status by RABHAN platform.
+3. Financing & Payment Facilitation
+· Start: Green flag User selects a financing option (BNPL, upfront payment). Red flag users can only select upfront payment.
+· Step 1: RABHAN Platform provides financing options with the total amount of the quote provided to the user (12 / 18/ 24 installments) including the payment terms and dates.
+· Step 2: User selects the suitable financing option, approves the financing terms and signs the agreement with RABHAN platform.
+· Step 3: RABHAN processes the down payment and notifies the chosen contractor to send the VAT invoice (the invoice net amount = the user's quote amount minus the overprice and the RABHAN's commission "15% of the original quote").
+· Step 4: Contractor confirms receipt of the down payment, sends the VAT invoice to RABHAN and schedules installation with the user.
+· Step 5: User receives confirmation of installation schedule. · Step 6: Contractor installs the solar energy system within the determined
+timeline (otherwise if the contractor delayed installation, he would receive a notification of the delay penalty to be deducted from his remaining claim). · Step 7: User confirms solar installation on the platform and by OTP verification. · End: RABHAN processes the remaining due payment and notifies the contractor.
+4. Installation & Quality Assurance
+· Start: Contractor schedules installation with the user through RABHAN platform.
+· Step 1: Contractor installs the solar energy system within the agreed timeline.
+Page 3 of 14
+
+· Step 2: User confirms installation on the platform, and for more assurance he receives OTP and gives it to the contractor after installation.
+· Step 3: The contractor updates the status on the platform to "installation completed" using the given OTP.
+· Step 4: RABHAN sends a post-installation survey to the user. · Step 5: User provides feedback on the installation experience on the platform. · Step 6: RABHAN ensures quality assurance by reviewing contractor
+performance (installation timeline ­ user feedback). · Step 7: In case of installation delay, RABHAN notifies the contractor with a
+credit note of the agreed delay penalty and deducts it from his remaining claim and show it on the contractor's wallet. · End: Installation is marked as complete on the RABHAN platform.
+5. Energy Monitoring & Savings Tracking
+· Start: RABHAN integrates with the solar system's monitoring tools (via API with the solar inverters through RS485/MODBUS protocol, the contractor is obligated to provide inverters able to be remotely monitored and controlled).
+· Step 1: User logs in to RABHAN platform. · Step 2: User navigates to the "Energy Dashboard." · Step 3: RABHAN displays real-time energy production and savings. · Step 4: User can view historical data and trends. · End: User receives monthly reports via email or RABHAN notifications.
+6. Customer Support & Feedback
+· Start: User selects "Support" or "Contact Us." · Step 1: User chooses a support option (chat, email, phone). · Step 2: RABHAN connects user to a representative or chatbot. · Step 3: Issue is resolved or escalated (e.g. to the contractor or RABHAN support
+team). · Step 4: User provides feedback on the support experience. · End: Feedback is logged for future improvements.
+Contractor Portal
+1. Contractor Onboarding, Registration and Listing · Start: Contractor visits RABHAN platform. · Step 1: Contractor selects "Sign Up" or "Register as a Contractor." · Step 2: Contractor agrees on terms and conditions of using the platform by selecting that he read and acknowledged all. · Step 3: Contractor provides business details and docs -KYC (company name, address, license number, CR number, VAT number, etc.) / or sign in through a link of NAFATH (we must have integration with NAFATH) · Step 4: Contractor uploads certifications and proof of experience, with mandatory of:
+Page 4 of 14
+
+1. Uploading C.R certificate. 2. Uploading VAT certificate. 3. Uploading SASO certificate. 4. Saudi Electricity Company License. 5. Uploading Energy Authorities certificate. 6. Upload Verified IBAN details · Step 5: RABHAN verifies contractor credentials (background check, licenses validation, etc.). · Step 6: RABHAN approves the contractor initial registration and notifies him through the platform and the acknowledged email to complete the registration process. · Step 6: Contractor creates a Wallet on RABHAN platform by selecting "Create a Wallet" and selects "Agree on terms and conditions". · Step 7: Contractor sets up payment details for receiving payments (Bank Account / STC pay / other gateways). · Step 8: Contractor selects to be "Full Solar Contractor" or "Solar Vendor only". 1. "Full Solar Contractor": can receive solar system installation requests /
+can provide quotes of installation / can use RABHAN marketplace to list his products there. 2. "Solar Vendor only": can use only RABHAN marketplace to list his products there. · Step 8: Contractor/ Vendor uses the marketplace button on his dashboard to list his products; the listing process should include the following: o At least one real image of each product. o Product origin and its SASO certificate. o Technical specs of each product. o Retail and wholesale price of each product including the minimum QTY for the wholesale price. · Step 9: RABHAN reviews and inspects the listing request and approves/ rejects some or all of the requested products to be listed. · Step 10: RABHAN notifies the contractor of the status of each product "removed" or "need to edit". · Step 11: Contractor edits the products as per the previous step. · End: Contractor/ Vendor account is approved and activated.
+2. Receiving & Responding to User Inquiries · Start: User submits a solar project inquiry on RABHAN platform. · Step 1: RABHAN matches the inquiry with contractors in the user's area. · Step 2: Selected Contractors receive a notification about the inquiry. · Step 3: Contractor reviews user details (property, energy needs, GPS location) to approve/ reject proceeding on the project. · Step 4: Upon approval; Contractor schedules the inspection visit with User (via the calendar on his dashboard).
+Page 5 of 14
+
+· Step 5: Contractor prepares and submits a customized quote (system power size, system average monthly production, system total cost, installation timeline, system hardware components and specs, grantee terms, maintenance terms).
+· Step 6: RABHAN reviews the quote and approves/ rejects the quote as following: 1. The maximum accepted price for the 1 KWP of the full solar system must be [2000 SAR] otherwise rejecting the contractor's quote. 2. 10% overprice of system cost must be added to the quote (due to RABHAN platform; so, the maximum total cost of the 1 KWP of the full solar system will be [2200 SAR] including the overprice).
+· Step 7: RABHAN notifies the Contractor of the status as following: 1. Approved: RAHBHAN forwards the quote to the user. 2. Rejected: RABHAN notifies the Contractor to edit the quote.
+· Step 8: Contractor edits the quote on his dashboard (in case the contractor rejects the edits; RABHAN notifies the user to choose another contractor from the available list as mentioned earlier in User Portal/ Article2 / Step 8- point 2)
+· End: Quote is sent to the user via RABHAN platform.
+3. User Acceptance & Agreement · Start: User selects the contractor's quote. · Step 1: RABHAN notifies the user to sign the agreement on the platform: 1. In case the user signed the agreement: RABHAN notifies the contractor of user acceptance. 2. In case the user refused to sign the agreement: RABHAN claims the non-proceeding penalty from the user "as agreed earlier", and process 50% of this amount to the contractor's wallet as a compensation of the inspection visit and the non-completion of the project. · Step 2: in case of user acceptance; Contractor signs the project agreement with RABHAN and acknowledges terms and conditions including: financial terms, warranty, grantee, maintenance and after sale support and services. · Step 3: Contractor schedules installation with the user. · End: Installation date is confirmed, and the project is marked as "In Progress."
+4. Installation Process · Start: Contractor arrives at the user's property for installation as scheduled. · Step 1: Contractor installs the solar energy system. · Step 2: Contractor tests the system to ensure it is operational. · Step 3: Contractor provides user with a brief orientation on system usage. · Step 4: User selects the button of "installation completed" on the platform. · Step 5: RABHAN sends OTP to the user to give it to the Contractor once the installation is completed. · Step 6: Contractor confirms the installation using the given OTP and submits proof of completion (photos, installation report) to RABHAN platform. · End: Installation is marked as complete on the platform.
+Page 6 of 14
+
+6. Contractor Payments & Commissioning
+· Start: Contractor sends the customized quote which is approved by RABHAN (including 10% overprice due to RABHAN).
+· Step 1: User accepts the quote and signs the agreement with RABHAN. · Step 2: Contractor receives confirmation and signs the installation agreement
+with RABHAN. · Step 3: RABHAN processes the agreed down payment to the contractor
+through one of the registered payment gateways of the contractor. · Step 4: Contractor sends a VAT invoice to RABHAN as follows:
+1. The total amount of the invoice = the original prices + the agreed 10% overprice.
+2. The net amount of the invoice is after discounts in favor of RABHAN: (a) Discounting the overprice. (b) Discounting RABHAN's commission 15% of the original prices.
+· Step 5: RABHAN verifies installation completion within the agreed timeline (as mentioned earlier).
+· Step 6: RABHAN deducts the installation delay penalty -if occurred - of the remaining contractor's claims and shows it in his wallet.
+· Step 7: RABHAN processes payment of the contractor's remaining dues. · Step 8: Contractor receives payment confirmation. · End: Transaction history is updated on the contractor dashboard and wallet.
+6. Performance Tracking & Feedback · Start: User provides feedback on the contractor's performance. · Step 1: RABHAN platform aggregates feedback and ratings from users. · Step 2: Contractor can view their performance metrics (ratings, reviews, etc.). · Step 3: RABHAN uses feedback to rank contractors and assign future RABHANs. · End: Contractor improves services based on feedback.
+7. Ongoing Support & Maintenance · Start: User requests post-installation support or maintenance. · Step 1: Contractor receives a notification about the support request. · Step 2: Contractor schedules a visit or provides remote assistance. · Step 3: Contractor resolves the issue and updates RABHAN platform. · End: Support request is marked as resolved.
+Page 7 of 14
+
+Admin Portal
+· Dashboard & Analytics (Total Users, Contractors, Revenue, Payments) · Review and approve/reject:
+(1) Contractor/ Vendor KYC and registration. (2) Listing products on the marketplace. (3) Provided quotes from the contractors. (4) Users KYC and loan applications.
+· Manage repayment terms and system settings. · Manage CRM Pages. · Monitor platform activity, reports, and analytics. · Push notifications and communication tools. · Integration with credit scoring tools and alternative data for underwriting · Role-based access control.
+Communication Module
+· In-App Messaging between User and Contractor. · Notification System (SMS +Email + In-App). · AI chatbot.
+BNPL System
+· Platform pays full quotation amount to Contractor once work is completed and verified by the User
+· User pays platform via monthly installment plan
+ EMI generation based on total cost and chosen plan (e.g., 6, 12, 18, 24 months)
+ Payment Gateway Integration (Stripe, PayPal, or local options)  Auto Payment Scheduling  Penalty System for Missed Payments
+Features & Specifications "
+
+Public Website and Mobile App
+
+ Landing Page
+ Hero Section  About Us  Features/Benefits  How it Works  Solar Calculator
+
+Page 8 of 14
+
+ Contact Us
+ CMS Pages (Manageable from Admin)
+ Privacy Policy  Terms & Conditions  FAQs
+ Solar Calculator
+ Input: Average electricity usage, roof space, budget  Output: Suggested solar panel capacity, estimated cost, potential savings
+ E- Commerce (Market place for Suppliers to present their energy equipment and solutions)
+ Mobile Application (IOS and Android)
+Technical Requirements "Proposed Beta Version"
+Platform Features
+· Mobile-first responsive design · Arabic/English language support (RTL compatibility) · Scalable microservices-based architecture · Modular design for future feature expansion · Robust admin dashboard with analytics · APIs-ready for third-party integrations.
+1. Banks, credit bureaus. 2. SAMA 3. NAFATH 4. SEC "Saudi Electricity Company" 5. Solar systems (integrating with solar inverters through RS485/Modbus
+or similar protocols) to monitor data and control solar power switch (on/off).
+Deliverables
+· UI/UX Design Prototypes (Arabic and English) · Web Application (User + Admin portals) · iOS & Android Mobile Applications · Fully functional backend infrastructure · Integrated payment and KYC systems · Documentation (technical, user guides, API docs) · Testing: unit, system, user acceptance testing (UAT) · Go-live support and maintenance (3­6 months post-launch)
+Page 9 of 14
+
+Diagrams
+User Portal (End Customer) 1. User Registration & Onboarding
+
+User selects "Sign Up" or "Register"
+- User completes
+docs ­ KYC
+- signs in through
+NAFATH
+
+User reads terms and conditions
+NO
+
+NO
+
+User
+
+YES
+
+verifies
+
+OTP
+
+User agrees on terms and conditions
+YES
+User provides essential personal details (name, email, phone, address)
+
+NO
+RABHAN Approves
+KYC
+
+RABHAN checks out
+
+YES
+
+user's credit report
+
+through SAMA/
+
+SIMAH
+
+User has a clean credit report
+
+User account is created and ready to use.
+
+YES
+
+NO
+
+Green flag Users: can use BNPL
+Page 10 of 14
+
+Red flag Users: can't use BNPL "only
+upfront payment"
+
+2. Requesting Solar Quotes & Contractor Matching
+
+User selects "Get a solar quotation".
+
+NO
+
+Contractor sends
+
+the inspection
+
+team to visit the
+
+YES
+
+user's property.
+
+User inputs property details: (Electricity consumption 12 months - roof size- GPS location).
+NO
+User schedules inspection visits and approves the non-proceeding
+penalty.
+
+User approves inspection visits from contractors.
+YES
+RABHAN matches users with contractors and give the user a list to choose three contractors.
+
+NO
+
+NO
+
+The three contractors
+provide customized
+quotes.
+
+RABHAN
+
+reviews and
+
+RABHAN pushes the
+
+YES
+
+approves the
+
+YES
+
+quotes to the user.
+
+3 quotes.
+
+Chosen contractor is notified of the status by RABHAN platform.
+YES
+NO RABHAN notifies the User of the
+agreed penalty claim.
+Page 11 of 14
+
+User reviews the quotes and selects one of them.
+
+3. Financing & Payment Facilitation
+
+Green flag User selects a financing
+option "BNPL"
+Contractor confirms receipt of the down payment, sends the VAT invoice to RABHAN and schedules
+installation with the user.
+
+User selects one of the options (12/18/24 installments)
+
+RABHAN provides financing proposal for the
+agreed quote amount, payment terms and dates.
+
+RABHAN processes the down payment
+and notifies the chosen contractor to send the VAT invoice.
+
+NO YES
+
+User approves the financing terms and signs the agreement with RABHAN.
+
+Contractor complete installation within the determined timeline (upon user confirmation).
+
+RABHAN processes the remaining due payment and notifies the contractor.
+YES
+
+Installation delay
+
+RABHAN processes the remaining due payment after deducting the delay penalty and notifies the contractor
+
+Page 12 of 14
+
+Contractor Portal
+1. Contractor Onboarding, Registration and Listing
+
+Contractor selects "Sign Up" or "Register as a Contractor".
+
+Contractor reads terms and conditions
+NO
+
+Contractor completes registration by:
+YES
+- Creating a wallet - Filling payment gateways details.
+
+RABHAN
+
+reviews and
+
+approves the
+
+contractor's
+
+initial
+
+registration
+
+NO
+
+Contractor agrees on terms and conditions
+YES
+Contractor provides business details and docs -KYC - certifications and proof of experience.
+
+NO
+RABHAN reviews and
+approves
+
+Contractor selects to be
+
+"Full Solar Contractor" or
+
+YES
+
+"Solar Vendor only".
+
+Contractor/ Vendor uses the marketplace button on his
+dashboard to list his products
+
+RABHAN
+
+reviews and
+
+approves
+
+each product
+
+NO
+
+YES
+Contractor/ Vendor account is approved
+and activated.
+
+The contractor includes the following in the listing: - At least one real image of each product. - Product origin and its SASO certificate. - Technical specs of each product. - Retail and wholesale price of each product
+including the minimum QTY for the wholesale price.
+Page 13 of 14
+
+2. Receiving & Responding to User Inquiries
+
+User submits a solar project inquiry on
+the platform.
+
+RABHAN matches the inquiry with contractors in the
+user's area.
+NO
+
+RABHAN reviews the quote and
+approves/ rejects the quote (upon some conditions).
+
+Contractor prepares and submits a
+customized quote NO
+
+Selected Contractor reviews user details and approves/ rejects proceeding
+YES
+Contractor schedules the inspection visit with
+User
+
+YES
+Quote is sent to the user via RABHAN platform.
+
+Note: RABHAN reviews the quote and approves/ rejects the quote as following: 1. The maximum accepted price for the 1 KWP of
+the full solar system must be [2000 SAR] otherwise rejecting the contractor's quote. 2. 10% overprice of system cost must be added to the quote (due to RABHAN platform; so, the maximum total cost of the 1 KWP of the full solar system will be [2200 SAR] including the overprice).
+
+Page 14 of 14
+
+
