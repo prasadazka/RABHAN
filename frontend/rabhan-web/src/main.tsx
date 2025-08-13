@@ -14,6 +14,8 @@ import UserApp from './pages/UserApp';
 import ContractorApp from './pages/ContractorApp';
 import { authService } from './services/auth.service';
 import { CleanSolarCalculator } from './components/calculator/CleanSolarCalculator';
+import PublicMarketplace from './pages/PublicMarketplace';
+import PublicProductDetail from './pages/PublicProductDetail';
 
 // Apply CSS variables to root
 const cssVars = generateCSSVariables();
@@ -120,6 +122,8 @@ const DashboardPage = () => {
     if (path === '/dashboard/profile') return 'profile';
     if (path === '/dashboard/settings') return 'settings';
     if (path === '/dashboard/documents') return 'documents';
+    if (path === '/dashboard/quotes') return 'quotes';
+    if (path === '/dashboard/marketplace') return 'marketplace';
     return 'dashboard';
   };
 
@@ -192,6 +196,174 @@ const ContractorDashboardPage = () => {
       }}
       initialActiveItem={getActiveMenuFromURL()} 
     />
+  );
+};
+
+// Public Marketplace page component
+const PublicMarketplacePage = () => {
+  const { i18n } = useTranslation();
+  const navigate = useNavigate();
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  React.useEffect(() => {
+    const authState = authService.getState();
+    setIsAuthenticated(authState.isAuthenticated);
+    setUser(authState.user);
+
+    const unsubscribe = authService.subscribe((state) => {
+      setIsAuthenticated(state.isAuthenticated);
+      setUser(state.user);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleLogin = () => {
+    setIsLoginPopupOpen(true);
+  };
+
+  const handleRegister = () => {
+    navigate('/register');
+  };
+
+  const handleLoginSuccess = (user: any) => {
+    console.log('Login successful:', user);
+    setIsLoginPopupOpen(false);
+    
+    if (user && user.role === 'CONTRACTOR') {
+      console.log('🔄 Redirecting contractor to contractor dashboard');
+      navigate('/contractor/dashboard');
+    } else if (user && user.role === 'USER') {
+      console.log('🔄 Redirecting user to user dashboard');
+      navigate('/dashboard');
+    }
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: theme.colors.gradients.primaryLight,
+      color: theme.colors.text.primary,
+      fontFamily: theme.typography.fonts.primary,
+      direction: i18n.language === 'ar' ? 'rtl' : 'ltr'
+    }}>
+      <GlobalHeader 
+        onLogin={handleLogin} 
+        onRegister={handleRegister}
+        onShowCalculator={() => navigate('/solar-calculator')}
+        onShowMarketplace={() => navigate('/marketplace')}
+        onHome={() => navigate('/')}
+        isAuthenticated={isAuthenticated}
+        user={user}
+        onLogout={handleLogout}
+      />
+      
+      <PublicMarketplace
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        isLoginPopupOpen={isLoginPopupOpen}
+        onCloseLoginPopup={() => setIsLoginPopupOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        onShowCalculator={() => navigate('/solar-calculator')}
+        onHome={() => navigate('/')}
+      />
+
+      <LoginPopup
+        isOpen={isLoginPopupOpen}
+        onClose={() => setIsLoginPopupOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        onRegister={handleRegister}
+      />
+    </div>
+  );
+};
+
+// Public Product Detail page component
+const PublicProductDetailPage = () => {
+  const { i18n } = useTranslation();
+  const navigate = useNavigate();
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  React.useEffect(() => {
+    const authState = authService.getState();
+    setIsAuthenticated(authState.isAuthenticated);
+    setUser(authState.user);
+
+    const unsubscribe = authService.subscribe((state) => {
+      setIsAuthenticated(state.isAuthenticated);
+      setUser(state.user);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleLogin = () => {
+    setIsLoginPopupOpen(true);
+  };
+
+  const handleRegister = () => {
+    navigate('/register');
+  };
+
+  const handleLoginSuccess = (user: any) => {
+    console.log('Login successful:', user);
+    setIsLoginPopupOpen(false);
+    
+    if (user && user.role === 'CONTRACTOR') {
+      console.log('🔄 Redirecting contractor to contractor dashboard');
+      navigate('/contractor/dashboard');
+    } else if (user && user.role === 'USER') {
+      console.log('🔄 Redirecting user to user dashboard');
+      navigate('/dashboard');
+    }
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: theme.colors.gradients.primaryLight,
+      color: theme.colors.text.primary,
+      fontFamily: theme.typography.fonts.primary,
+      direction: i18n.language === 'ar' ? 'rtl' : 'ltr'
+    }}>
+      <GlobalHeader 
+        onLogin={handleLogin} 
+        onRegister={handleRegister}
+        onShowCalculator={() => navigate('/solar-calculator')}
+        onShowMarketplace={() => navigate('/marketplace')}
+        onHome={() => navigate('/')}
+        isAuthenticated={isAuthenticated}
+        user={user}
+        onLogout={handleLogout}
+      />
+      
+      <PublicProductDetail
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onBack={() => navigate('/marketplace')}
+        onShowCalculator={() => navigate('/solar-calculator')}
+        onHome={() => navigate('/')}
+      />
+
+      <LoginPopup
+        isOpen={isLoginPopupOpen}
+        onClose={() => setIsLoginPopupOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        onRegister={handleRegister}
+      />
+    </div>
   );
 };
 
@@ -372,6 +544,7 @@ const HomePage = () => {
         onLogin={handleLogin} 
         onRegister={handleRegister}
         onShowCalculator={() => navigate('/solar-calculator')}
+        onShowMarketplace={() => navigate('/marketplace')}
         onHome={() => navigate('/')}
         isAuthenticated={isAuthenticated}
         user={user}
@@ -475,6 +648,7 @@ const RegisterSelectionPage = () => {
         onLogin={handleLogin} 
         onRegister={handleRegister}
         onShowCalculator={() => navigate('/solar-calculator')}
+        onShowMarketplace={() => navigate('/marketplace')}
         onHome={() => navigate('/')}
         isAuthenticated={isAuthenticated}
         user={user}
@@ -567,6 +741,7 @@ const UserRegistrationPage = () => {
         onLogin={handleLogin} 
         onRegister={handleRegister}
         onShowCalculator={() => navigate('/solar-calculator')}
+        onShowMarketplace={() => navigate('/marketplace')}
         onHome={() => navigate('/')}
         isAuthenticated={isAuthenticated}
         user={user}
@@ -658,6 +833,7 @@ const ContractorRegistrationPage = () => {
         onLogin={handleLogin} 
         onRegister={handleRegister}
         onShowCalculator={() => navigate('/solar-calculator')}
+        onShowMarketplace={() => navigate('/marketplace')}
         onHome={() => navigate('/')}
         isAuthenticated={isAuthenticated}
         user={user}
@@ -694,6 +870,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/solar-calculator" element={<SolarCalculatorPage />} />
+        <Route path="/marketplace" element={<PublicMarketplacePage />} />
+        <Route path="/marketplace/product/:productId" element={<PublicProductDetailPage />} />
         <Route path="/register" element={<RegisterSelectionPage />} />
         <Route path="/register/user" element={<UserRegistrationPage />} />
         <Route path="/register/contractor" element={<ContractorRegistrationPage />} />
@@ -702,6 +880,10 @@ const App = () => {
         <Route path="/dashboard/profile" element={<AuthGuard><DashboardPage /></AuthGuard>} />
         <Route path="/dashboard/settings" element={<AuthGuard><DashboardPage /></AuthGuard>} />
         <Route path="/dashboard/documents" element={<AuthGuard><DashboardPage /></AuthGuard>} />
+        <Route path="/dashboard/quotes" element={<AuthGuard><DashboardPage /></AuthGuard>} />
+        <Route path="/dashboard/marketplace" element={<AuthGuard><DashboardPage /></AuthGuard>} />
+        <Route path="/dashboard/marketplace/product/:productId" element={<AuthGuard><DashboardPage /></AuthGuard>} />
+        <Route path="/dashboard/checkout" element={<AuthGuard><DashboardPage /></AuthGuard>} />
         {/* Authenticated routes - Contractor Dashboard */}
         <Route path="/contractor/dashboard" element={<AuthGuard><ContractorDashboardPage /></AuthGuard>} />
         <Route path="/contractor/profile" element={<AuthGuard><ContractorDashboardPage /></AuthGuard>} />

@@ -62,6 +62,16 @@ const FinancingIcon = () => (
   </svg>
 );
 
+const QuotesIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    <polyline points="9,11 12,14 15,11" stroke="currentColor" strokeWidth="2" fill="none"/>
+    <line x1="12" y1="14" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    <circle cx="5" cy="16" r="1" fill="currentColor"/>
+    <circle cx="19" cy="16" r="1" fill="currentColor"/>
+  </svg>
+);
+
 const ProjectsIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
@@ -210,6 +220,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const menuItems: MenuItem[] = [
     { key: 'dashboard', translationKey: 'userApp.sidebar.dashboard', icon: <DashboardIcon /> },
     { key: 'calculator', translationKey: 'userApp.sidebar.calculator', icon: <SolarIcon /> },
+    { key: 'quotes', translationKey: 'userApp.sidebar.quotes', icon: <QuotesIcon />, userTypes: ['USER'] },
     { key: 'financing', translationKey: 'userApp.sidebar.financing', icon: <FinancingIcon />, userTypes: ['USER'] },
     { key: 'projects', translationKey: 'userApp.sidebar.projects', icon: <ProjectsIcon />, userTypes: ['CONTRACTOR'] },
     { key: 'marketplace', translationKey: 'userApp.sidebar.marketplace', icon: <MarketplaceIcon /> },

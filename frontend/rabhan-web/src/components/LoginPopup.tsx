@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../theme';
 import { authService } from '../services/auth.service';
-import DevCredentialHelper from './DevCredentialHelper';
 
 interface LoginPopupProps {
   isOpen: boolean;
@@ -119,30 +118,6 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onLoginSuccess
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Dev credential helper
-  const handleFillDevCredentials = (devData: any) => {
-    setFormData(prev => ({
-      ...prev,
-      email: devData.email || '',
-      password: devData.password || '',
-      userType: devData.role === 'CONTRACTOR' ? 'CONTRACTOR' : 'USER'
-    }));
-
-    // Skip directly to password step for dev credentials
-    setLoginStep({
-      step: 'password',
-      isEmailVerified: true,
-      isOtpVerified: true,
-      otpSent: false,
-      isSendingOtp: false,
-      isVerifyingOtp: false,
-      resendCountdown: 0,
-      maskedPhone: undefined
-    });
-
-    // Clear any existing errors
-    setErrors({});
-  };
 
   // Prevent body scroll when popup is open
   useEffect(() => {
@@ -321,15 +296,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onLoginSuccess
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Dev Credential Helper */}
-      <DevCredentialHelper
-        formType="login"
-        onFillForm={handleFillDevCredentials}
-        isVisible={isOpen}
-      />
-      
-      <div
+    <div
         style={{
           position: 'fixed',
           top: 0,
@@ -492,29 +459,6 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onLoginSuccess
           </div>
         </div>
 
-        {/* Test Account Helper for Contractors */}
-        {formData.userType === 'CONTRACTOR' && (
-          <div style={{
-            padding: '0.75rem',
-            background: 'rgba(62, 178, 177, 0.1)',
-            border: '1px solid rgba(62, 178, 177, 0.2)',
-            borderRadius: '8px',
-            marginBottom: '1.5rem',
-            fontSize: '0.75rem',
-            color: '#6b7280',
-            textAlign: isRTL ? 'right' : 'left'
-          }}>
-            <div style={{ fontWeight: '600', marginBottom: '0.25rem', color: '#3eb2b1' }}>
-              {t('auth.testAccount.title', 'Test Account:')}
-            </div>
-            <div style={{ marginBottom: '0.125rem' }}>
-              <strong>{t('auth.testAccount.email', 'Email:')} </strong>contractor@rabhan.sa
-            </div>
-            <div>
-              <strong>{t('auth.testAccount.password', 'Password:')} </strong>Contractor123!
-            </div>
-          </div>
-        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit}>
@@ -555,6 +499,20 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onLoginSuccess
                 value={formData.email}
                 onChange={(e) => {
                   setFormData(prev => ({ ...prev, email: e.target.value }));
+                  // Reset login step if user changes email after failed attempt
+                  if (loginStep.step !== 'email') {
+                    setLoginStep({
+                      step: 'email',
+                      isEmailVerified: false,
+                      isOtpVerified: false,
+                      otpSent: false,
+                      isSendingOtp: false,
+                      isVerifyingOtp: false,
+                      resendCountdown: 0,
+                      maskedPhone: undefined
+                    });
+                    setErrors({}); // Clear any previous errors
+                  }
                 }}
                 placeholder={t('auth.emailPlaceholder')}
                 style={{
@@ -678,6 +636,42 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onLoginSuccess
                   {loginStep.isSendingOtp ? t('common.loading') : t('phone.otp.resend')}
                 </button>
               )}
+              
+              {/* Back to Email Button */}
+              <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginStep({
+                      step: 'email',
+                      isEmailVerified: false,
+                      isOtpVerified: false,
+                      otpSent: false,
+                      isSendingOtp: false,
+                      isVerifyingOtp: false,
+                      resendCountdown: 0,
+                      maskedPhone: undefined
+                    });
+                    setFormData(prev => ({ ...prev, otp: '' }));
+                    setErrors({});
+                  }}
+                  style={{
+                    background: 'none',
+                    color: '#6b7280',
+                    border: 'none',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    margin: '0 auto'
+                  }}
+                >
+                  <span>{isRTL ? '→' : '←'}</span>
+                  {t('auth.backToEmail', 'Back to Email')}
+                </button>
+              </div>
             </div>
           )}
 
@@ -749,6 +743,42 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onLoginSuccess
                   {errors.password}
                 </span>
               )}
+              
+              {/* Back to Email Button */}
+              <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginStep({
+                      step: 'email',
+                      isEmailVerified: false,
+                      isOtpVerified: false,
+                      otpSent: false,
+                      isSendingOtp: false,
+                      isVerifyingOtp: false,
+                      resendCountdown: 0,
+                      maskedPhone: undefined
+                    });
+                    setFormData(prev => ({ ...prev, otp: '', password: '' }));
+                    setErrors({});
+                  }}
+                  style={{
+                    background: 'none',
+                    color: '#6b7280',
+                    border: 'none',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    margin: '0 auto'
+                  }}
+                >
+                  <span>{isRTL ? '→' : '←'}</span>
+                  {t('auth.backToEmail', 'Back to Email')}
+                </button>
+              </div>
             </div>
           )}
 
@@ -914,7 +944,6 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ isOpen, onClose, onLoginSuccess
         `}
       </style>
     </div>
-    </>
   );
 };
 

@@ -269,8 +269,15 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     // Use the same JWT secret as other services
     const jwtSecret = process.env.JWT_SECRET || 'rabhan_jwt_secret_key_for_development_only_change_in_production';
     
+    // In development, allow some flexibility with token expiration
+    const verifyOptions: jwt.VerifyOptions = {};
+    if (process.env.NODE_ENV === 'development') {
+      // In development, ignore expiration for testing
+      verifyOptions.ignoreExpiration = true;
+    }
+    
     // Verify and decode the JWT token
-    const decoded = jwt.verify(token, jwtSecret) as any;
+    const decoded = jwt.verify(token, jwtSecret, verifyOptions) as any;
     
     // Extract user information from the token
     const userId = decoded.userId || decoded.id || decoded.sub;

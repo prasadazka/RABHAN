@@ -20,6 +20,7 @@ import KYCProgressTracker from '../components/documents/KYCProgressTracker';
 import VerificationBadge, { VerificationStatus } from '../components/VerificationBadge';
 import { documentService, DocumentMetadata } from '../services/document.service';
 import { userService } from '../services/user.service';
+import { authService } from '../services/auth.service';
 
 // Styled Components
 const DocumentsContainer = styled.div`
@@ -481,14 +482,44 @@ const DocumentsPage: React.FC<DocumentsPageProps> = ({ userType = 'USER' }) => {
 
   // Load documents and verification status on mount
   useEffect(() => {
-    loadDocuments();
-    loadVerificationStatus();
+    console.log('🚀 Documents page useEffect triggered - loading documents...');
     
-    // Set auth token for document service
-    const token = localStorage.getItem('token');
-    if (token) {
-      documentService.setAuthToken(token);
-    }
+    // Set auth token FIRST, then load documents
+    const initializeAndLoad = async () => {
+      try {
+        // Set auth token for document service from API service
+        const { apiService } = await import('../services/api.service');
+        const token = apiService.getAccessToken();
+        
+        if (token) {
+          documentService.setAuthToken(token);
+          console.log('🔑 Document service token synchronized with API service');
+        } else {
+          console.warn('⚠️ No token available from API service in useEffect');
+        }
+        
+        // Now load documents with the token set
+        console.log('🔄 About to call loadDocuments()...');
+        try {
+          await loadDocuments();
+          console.log('✅ loadDocuments() completed successfully');
+        } catch (loadDocsError) {
+          console.error('❌ loadDocuments() failed:', loadDocsError);
+        }
+        
+        console.log('🔄 About to call loadVerificationStatus()...');
+        try {
+          await loadVerificationStatus();
+          console.log('✅ loadVerificationStatus() completed successfully');
+        } catch (loadVerifyError) {
+          console.error('❌ loadVerificationStatus() failed:', loadVerifyError);
+        }
+      } catch (error) {
+        console.error('❌ Failed to initialize documents page:', error);
+      }
+    };
+    
+    initializeAndLoad();
   }, []);
 
   // Set up periodic verification status refresh for real-time updates
@@ -502,17 +533,35 @@ const DocumentsPage: React.FC<DocumentsPageProps> = ({ userType = 'USER' }) => {
   }, []);
 
   const loadDocuments = async () => {
+    console.log('📋 === loadDocuments() called ===');
     try {
-      console.log('📋 Loading documents from API...');
+      console.log('📋 Loading documents from document service API...');
       
-      // Set auth token before making API call
-      const token = localStorage.getItem('token');
+      // Get auth token from API service (preferred) or localStorage fallback
+      const { apiService } = await import('../services/api.service');
+      let token = apiService.getAccessToken();
+      
+      if (!token) {
+        // Fallback to localStorage
+        token = localStorage.getItem('rabhan_access_token') || 
+                localStorage.getItem('token') || 
+                localStorage.getItem('access_token') || 
+                localStorage.getItem('authToken');
+      }
+                   
+      console.log('📋 Available localStorage keys:', Object.keys(localStorage));
+      console.log('📋 API service token:', token?.substring(0, 20));
+      console.log('📋 rabhan_access_token:', localStorage.getItem('rabhan_access_token')?.substring(0, 20));
+      
       if (token) {
+        console.log('🔑 Using auth token for document service:', token.substring(0, 20) + '...');
         documentService.setAuthToken(token);
       } else {
-        // Use test token for development
-        const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxZjQ3NTcyOS1jMmUwLTRiM2QtYTY3OC1lNGE0ZWE0ZDZjYzAiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJ0eXBlIjoiVVNFUiIsImlhdCI6MTc1Mzk4NTM1NCwiZXhwIjoxNzU0MDcxNzU0fQ.wyCd8yfMxBAKjeemyzHzkvrSTctI94LX9wDWrj7f2eA';
-        documentService.setAuthToken(testToken);
+        console.warn('⚠️ No auth token found in API service or localStorage');
+        // Try to get user info from auth service
+        const authUser = authService.getCurrentUser();
+        console.log('📋 Auth service user:', authUser);
+        console.log('📋 Auth service authenticated:', authService.isAuthenticated());
       }
       
       const response = await documentService.getDocuments({ 
@@ -520,24 +569,80 @@ const DocumentsPage: React.FC<DocumentsPageProps> = ({ userType = 'USER' }) => {
         // Add timestamp to prevent caching
         _t: Date.now().toString()
       });
-      console.log('📋 API response:', response);
-      console.log('📋 Documents received:', response.documents.length);
+      console.log('📋 Document service response:', response);
+      console.log('📋 Documents received:', response.documents?.length || 0);
       
-      // Log each document with key details
-      response.documents.forEach((doc, index) => {
-        console.log(`📄 Document ${index + 1}:`, {
-          id: doc.document_id,
-          filename: doc.original_filename,
-          category: doc.category_id,
-          uploadTime: doc.upload_timestamp,
-          status: doc.document_status
+      if (response.documents && response.documents.length > 0) {
+        // Log each document with key details
+        response.documents.forEach((doc, index) => {
+          console.log(`📄 Document ${index + 1}:`, {
+            id: doc.document_id,
+            filename: doc.original_filename,
+            category: doc.category_id,
+            uploadTime: doc.upload_timestamp,
+            status: doc.document_status
+          });
         });
-      });
-      
-      setDocuments(response.documents);
-      console.log('✅ Documents state updated with', response.documents.length, 'documents');
+        
+        setDocuments(response.documents);
+        console.log('✅ Documents state updated with', response.documents.length, 'real documents');
+      } else {
+        console.log('📋 No documents returned from document service');
+        console.log('📋 Response details:', { 
+          hasResponse: !!response, 
+          hasDocuments: !!response?.documents,
+          documentsLength: response?.documents?.length || 0,
+          responseKeys: response ? Object.keys(response) : []
+        });
+        setDocuments([]);
+      }
     } catch (error) {
-      console.error('❌ Failed to load documents:', error);
+      console.error('❌ Failed to load documents from document service:', error);
+      
+      // Fallback to user service if document service fails
+      try {
+        console.log('📋 Fallback: Trying user service...');
+        const userResponse = await userService.getDocuments();
+        console.log('📋 User service fallback response:', userResponse);
+        
+        if (userResponse.success && userResponse.documents && userResponse.documents.length > 0) {
+          // Transform user service documents to match document service format
+          const transformedDocuments = userResponse.documents.map((doc: any) => ({
+            document_id: doc.id || '',
+            user_id: doc.userId || '',
+            category_id: doc.documentType || 'unknown',
+            original_filename: `${doc.documentType || 'Document'}_${doc.id || 'unknown'}.pdf`,
+            file_size_bytes: 0,
+            mime_type: 'application/pdf',
+            file_hash: '',
+            upload_timestamp: doc.uploadedAt || doc.createdAt || new Date().toISOString(),
+            validation_score: 100,
+            virus_scan_status: 'clean' as const,
+            approval_status: doc.verificationStatus === 'verified' ? 'approved' : doc.verificationStatus === 'rejected' ? 'rejected' : 'pending',
+            document_status: doc.uploadStatus === 'uploaded' ? 'validated' : doc.uploadStatus === 'failed' ? 'rejected' : 'pending',
+            ocr_confidence: 0,
+            extracted_data: {},
+            sama_audit_log: [],
+            category: {
+              id: doc.documentType || 'unknown',
+              name: doc.documentType || 'Unknown Document',
+              description: `Document type: ${doc.documentType || 'Unknown'}`,
+              required_for_kyc: true,
+              user_type: 'BOTH' as const,
+              validation_rules: {}
+            }
+          })) as DocumentMetadata[];
+          
+          setDocuments(transformedDocuments);
+          console.log('✅ Using user service fallback with', transformedDocuments.length, 'documents');
+        } else {
+          console.log('📋 No documents in user service either');
+          setDocuments([]);
+        }
+      } catch (fallbackError) {
+        console.error('❌ User service fallback also failed:', fallbackError);
+        setDocuments([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -576,14 +681,14 @@ const DocumentsPage: React.FC<DocumentsPageProps> = ({ userType = 'USER' }) => {
       const file = files[0];
       console.log('📁 File selected:', file.name, file.size, file.type);
       
-      // Set auth token
-      const token = localStorage.getItem('token');
+      // Set auth token from API service
+      const { apiService } = await import('../services/api.service');
+      const token = apiService.getAccessToken() || localStorage.getItem('rabhan_access_token');
       if (token) {
+        console.log('🔑 Upload using token:', token.substring(0, 20) + '...');
         documentService.setAuthToken(token);
       } else {
-        // Use test token for development
-        const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxZjQ3NTcyOS1jMmUwLTRiM2QtYTY3OC1lNGE0ZWE0ZDZjYzAiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJ0eXBlIjoiVVNFUiIsImlhdCI6MTc1Mzk4NTM1NCwiZXhwIjoxNzU0MDcxNzU0fQ.wyCd8yfMxBAKjeemyzHzkvrSTctI94LX9wDWrj7f2eA';
-        documentService.setAuthToken(testToken);
+        console.warn('⚠️ No token available for upload');
       }
       
       try {
@@ -601,12 +706,12 @@ const DocumentsPage: React.FC<DocumentsPageProps> = ({ userType = 'USER' }) => {
         toast.success('Document uploaded successfully!', { id: 'upload-progress' });
         console.log('📋 Reloading documents list after successful upload...');
         
-        // Wait a moment for backend to complete the replacement
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait a moment for backend to complete the upload processing
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        console.log('📋 Making API call to get fresh documents...');
+        console.log('📋 Making API call to get fresh documents from user service...');
         await loadDocuments();
-        console.log('📋 Documents list reloaded');
+        console.log('📋 Documents list reloaded from user service');
         
         // Refresh verification status as document upload may trigger status change
         console.log('🔄 Refreshing verification status after document upload...');
@@ -628,11 +733,25 @@ const DocumentsPage: React.FC<DocumentsPageProps> = ({ userType = 'USER' }) => {
   };
 
 
-  // Calculate stats
+  // Calculate stats - add logging to debug the issue
   const totalDocuments = documents.length;
   const approvedDocuments = documents.filter(doc => doc.approval_status === 'approved').length;
   const pendingDocuments = documents.filter(doc => doc.approval_status === 'pending').length;
   const rejectedDocuments = documents.filter(doc => doc.approval_status === 'rejected').length;
+  
+  // Debug logging for statistics calculation
+  console.log('📊 Statistics calculation:', {
+    documentsArrayLength: documents.length,
+    totalDocuments,
+    approvedDocuments,
+    pendingDocuments,
+    rejectedDocuments,
+    documentsArray: documents.map(doc => ({
+      id: doc.document_id,
+      approval_status: doc.approval_status,
+      filename: doc.original_filename
+    }))
+  });
 
   // Tab configurations
   const tabs = [
@@ -662,12 +781,30 @@ const DocumentsPage: React.FC<DocumentsPageProps> = ({ userType = 'USER' }) => {
             <Title>
               <FileText size={32} />
               {t('documents.title')}
+              {documents.length === 0 && (
+                <span style={{ 
+                  fontSize: '14px', 
+                  color: '#f59e0b', 
+                  marginLeft: '8px',
+                  background: '#fef3c7',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontWeight: '500'
+                }}>
+                  {loading ? 'Loading...' : 'No Real Documents'}
+                </span>
+              )}
             </Title>
             <Subtitle>
               {userType === 'CONTRACTOR' 
                 ? t('documents.subtitle.contractor')
                 : t('documents.subtitle.user')
               }
+              {documents.length === 0 && !loading && (
+                <div style={{ color: '#f59e0b', fontSize: '14px', marginTop: '4px' }}>
+                  System may be showing demo/mock data for KYC requirements.
+                </div>
+              )}
             </Subtitle>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -736,6 +873,15 @@ const DocumentsPage: React.FC<DocumentsPageProps> = ({ userType = 'USER' }) => {
               </StatsGrid>
 
               <div data-kyc-progress>
+                {console.log('📋 Documents page - passing documents to KYCProgressTracker:', {
+                  documentsLength: documents?.length || 0,
+                  documentsArray: documents?.map(doc => ({
+                    id: doc.document_id,
+                    category: doc.category_id,
+                    filename: doc.original_filename,
+                    status: doc.approval_status
+                  })) || []
+                })}
                 <KYCProgressTracker
                   userType={userType}
                   onUploadRequest={undefined}

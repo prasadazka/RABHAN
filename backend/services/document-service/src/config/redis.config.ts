@@ -395,4 +395,22 @@ export class RedisConfig {
   public isHealthy(): boolean {
     return this.isConnected;
   }
+
+  /**
+   * Close Redis connection - Added to fix compilation error
+   */
+  public async close(): Promise<void> {
+    try {
+      if (this.client) {
+        await this.client.disconnect();
+        this.isConnected = false;
+        logger.info('Redis connection closed successfully');
+      }
+    } catch (error) {
+      logger.error('Error closing Redis connection:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw error;
+    }
+  }
 }

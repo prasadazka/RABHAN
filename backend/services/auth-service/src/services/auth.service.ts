@@ -275,10 +275,13 @@ export class AuthService {
         // In development mode, optionally allow login with dev credentials without OTP verification
         const isDevelopment = process.env.NODE_ENV === 'development';
         const forceOTPInDev = process.env.FORCE_OTP_IN_DEV === 'true';
+        // Get dev credential domains from environment or use defaults
+        const devCredentialDomains = process.env.DEV_CREDENTIAL_DOMAINS?.split(',') || ['@example.com', '@business.com'];
+        const devCredentialEmails = process.env.DEV_CREDENTIAL_EMAILS?.split(',') || ['admin@rabhan.sa'];
+        
         const isDevCredential = isDevelopment && !forceOTPInDev && (
-          data.email.includes('@example.com') ||
-          data.email.includes('@business.com') ||
-          data.email === 'admin@rabhan.sa'
+          devCredentialDomains.some(domain => data.email.includes(domain)) ||
+          devCredentialEmails.includes(data.email)
         );
         
         if (!isOTPVerified && !isDevCredential) {

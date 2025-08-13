@@ -744,6 +744,85 @@ export class ContractorController {
   };
 
   /**
+   * Get all contractors for admin dashboard (Admin function)
+   * GET /api/contractors/admin/contractors
+   */
+  getContractorsForAdmin = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const startTime = Date.now();
+    
+    try {
+      // Check admin permissions OR service-to-service call
+      const isServiceCall = req.headers['x-service'] === 'admin-service';
+      if (!isServiceCall && !req.user?.isAdmin) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: 'INSUFFICIENT_PERMISSIONS',
+            message: 'Admin access required',
+            timestamp: new Date()
+          }
+        });
+        return;
+      }
+      
+      const limit = parseInt(req.query.limit as string) || 100;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      logger.info('Admin fetching contractors list', {
+        admin_id: req.user?.id || 'service-call',
+        limit,
+        offset
+      });
+      
+      // Fetch contractors from service with admin privileges
+      const contractors = await this.contractorService.getContractorsForAdmin(limit, offset);
+      
+      const duration = Date.now() - startTime;
+      performanceLogger.apiResponse('/api/contractors/admin/contractors', 'GET', 200, duration);
+      
+      logger.info('Admin contractors list retrieved successfully', {
+        admin_id: req.user?.id || 'service-call',
+        contractors_count: contractors.length,
+        duration
+      });
+      
+      res.json({
+        success: true,
+        data: contractors,
+        metadata: {
+          timestamp: new Date(),
+          request_id: req.requestId,
+          version: '1.0.0',
+          total_count: contractors.length,
+          limit,
+          offset
+        }
+      } as ApiResponse<typeof contractors>);
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      logger.error('Failed to get contractors for admin', {
+        admin_id: req.user?.id,
+        error: errorMessage,
+        duration
+      });
+      
+      performanceLogger.apiResponse('/api/contractors/admin/contractors', 'GET', 500, duration);
+      
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: errorMessage,
+          timestamp: new Date()
+        }
+      } as ApiResponse<null>);
+    }
+  };
+
+  /**
    * Get contractor verification status by ID (Admin function)
    * GET /api/contractors/:id/verification
    */

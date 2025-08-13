@@ -375,7 +375,7 @@ class AuthService {
   // Email-based login flow methods
   public async lookupEmailForLogin(email: string, userType?: 'USER' | 'CONTRACTOR'): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
-      const response = await apiService.request('/auth/login/email/lookup', 'POST', { email, userType });
+      const response = await apiService.request('/login/email/lookup', 'POST', { email, userType });
       return { success: response.success, data: response.data, error: response.error };
     } catch (error: any) {
       console.error('Email lookup error:', error);
@@ -385,7 +385,7 @@ class AuthService {
 
   public async sendLoginOTPToPhone(email: string, userType?: 'USER' | 'CONTRACTOR'): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
-      const response = await apiService.request('/auth/login/email/send-otp', 'POST', { email, userType });
+      const response = await apiService.request('/login/email/send-otp', 'POST', { email, userType });
       return { success: response.success, data: response.data, error: response.error };
     } catch (error: any) {
       console.error('Send login OTP error:', error);
@@ -395,7 +395,7 @@ class AuthService {
 
   public async verifyLoginOTP(data: { email: string; otp: string; userType?: 'USER' | 'CONTRACTOR' }): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await apiService.request('/auth/login/email/verify-otp', 'POST', data);
+      const response = await apiService.request('/login/email/verify-otp', 'POST', data);
       return { success: response.success, error: response.error };
     } catch (error: any) {
       console.error('Verify login OTP error:', error);

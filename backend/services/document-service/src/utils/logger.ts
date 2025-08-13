@@ -199,7 +199,6 @@ export class SAMALogger {
       
       // Request context
       correlationId: this.generateCorrelationId(),
-      timestamp: new Date().toISOString(),
     };
 
     // Log to winston
@@ -242,7 +241,6 @@ export class SAMALogger {
       
       // Request context
       correlationId: this.generateCorrelationId(),
-      timestamp: new Date().toISOString(),
     };
 
     // Log to winston
@@ -285,7 +283,6 @@ export class SAMALogger {
       correlationId: this.generateCorrelationId(),
       ipAddress: metadata.ipAddress,
       userAgent: metadata.userAgent,
-      timestamp: new Date().toISOString(),
     };
 
     // Log to winston

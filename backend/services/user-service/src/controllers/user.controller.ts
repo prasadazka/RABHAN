@@ -3,7 +3,7 @@ import { UserService } from '../services/user.service';
 import { ApiResponse, CreateUserProfileDTO, UpdateUserProfileDTO } from '../types';
 import { logger } from '../utils/logger';
 import { StatusCodes } from 'http-status-codes';
-import { ResponseUtils } from '../../../../shared/utils/response.utils';
+import { ResponseUtils } from '../utils/response.utils';
 
 export class UserController {
   private userService: UserService;
@@ -427,6 +427,92 @@ export class UserController {
 
       res.status(StatusCodes.OK).json(response);
     } catch (error) {
+      next(error);
+    }
+  };
+
+  // Admin endpoint to get all users for dashboard
+  getAllUsersForAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      logger.info('🎯 Admin fetching all users for dashboard', {
+        adminUser: req.user?.id,
+        requestId: req.id
+      });
+
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 50;
+      const status = req.query.status as string;
+
+      const result = await this.userService.getAllUsersForAdmin({
+        page,
+        limit,
+        status
+      });
+
+      logger.info('✅ Successfully retrieved users for admin dashboard', {
+        totalUsers: result.users.length,
+        page,
+        limit,
+        requestId: req.id
+      });
+
+      const response: ApiResponse<any> = {
+        success: true,
+        data: result.users,
+        message: 'Users retrieved successfully',
+        pagination: result.pagination,
+        metadata: {
+          timestamp: new Date().toISOString(),
+          version: process.env.SERVICE_VERSION || '1.0.0',
+          requestId: req.id,
+          totalCount: result.pagination.total
+        }
+      };
+
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      logger.error('❌ Error fetching users for admin dashboard', {
+        error: error.message,
+        requestId: req.id
+      });
+      next(error);
+    }
+  };
+
+  // Admin endpoint to get user analytics and KPIs
+  getUserAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      logger.info('📊 Admin fetching user analytics and KPIs', {
+        adminUser: req.user?.id,
+        requestId: req.id
+      });
+
+      const analytics = await this.userService.getUserAnalytics();
+
+      logger.info('✅ Successfully retrieved user analytics', {
+        totalUsers: analytics.totalUsers,
+        growthRate: analytics.userGrowth.growthRate,
+        requestId: req.id
+      });
+
+      const response: ApiResponse<typeof analytics> = {
+        success: true,
+        data: analytics,
+        message: 'User analytics retrieved successfully',
+        metadata: {
+          timestamp: new Date().toISOString(),
+          version: process.env.SERVICE_VERSION || '1.0.0',
+          requestId: req.id,
+          generatedAt: new Date().toISOString()
+        }
+      };
+
+      res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+      logger.error('❌ Error fetching user analytics', {
+        error: error.message,
+        requestId: req.id
+      });
       next(error);
     }
   };

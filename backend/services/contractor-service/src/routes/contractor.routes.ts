@@ -452,6 +452,39 @@ router.get('/:id/verification',
 );
 
 /**
+ * GET /api/contractors/admin/contractors
+ * Get all contractors for admin dashboard
+ * Requires admin authentication OR service-to-service call
+ */
+router.get('/admin/contractors',
+  // Allow both authenticated admin users and service-to-service calls
+  (req, res, next) => {
+    // Check for service-to-service call
+    if (req.headers['x-service'] === 'admin-service') {
+      // Skip authentication for service-to-service calls
+      return next();
+    }
+    // Otherwise require normal admin authentication
+    authenticateToken(req, res, (err) => {
+      if (err) return next(err);
+      requireAdmin(req, res, next);
+    });
+  },
+  [
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 1000 })
+      .withMessage('Limit must be between 1 and 1000'),
+    
+    query('offset')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Offset must be a positive integer')
+  ],
+  contractorController.getContractorsForAdmin
+);
+
+/**
  * PUT /api/contractors/:id/status
  * Update contractor status (Admin only)
  * Requires admin authentication

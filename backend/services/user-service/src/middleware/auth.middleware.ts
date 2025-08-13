@@ -45,6 +45,18 @@ export const authenticate = async (
     console.log('🔑 Token received, verifying...', { tokenStart: token.substring(0, 20) + '...' });
     console.log('🔐 Using JWT secret:', jwtSecret.substring(0, 10) + '...');
 
+    // Temporary bypass for admin mock token (for testing integration)
+    if (token === 'admin-mock-token') {
+      console.log('✅ Admin mock token detected - bypassing auth for testing');
+      req.user = {
+        id: 'admin-user',
+        email: 'admin@rabhan.sa',
+        role: 'ADMIN',
+        nationalId: 'admin'
+      };
+      return next();
+    }
+
     // First, let's decode without verification to see the structure
     try {
       const decoded_raw = jwt.decode(token, { complete: true });

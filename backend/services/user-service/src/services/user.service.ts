@@ -15,8 +15,7 @@ import {
 import { CacheService } from './cache.service';
 import { AuthService } from './auth.service';
 import { logger } from '../utils/logger';
-import { verificationEvents, ProfileCompletionEvent } from '../../../../shared/events/verification.events';
-import { verificationManager } from '../../../../shared/services/verification-manager.service';
+import { verificationEvents, verificationManager, ProfileCompletionEvent } from '../utils/verification-events';
 
 export class UserService {
   private userModel: UserModel;
@@ -537,6 +536,151 @@ export class UserService {
   }
 
   // Private methods
+  // Admin method to get all users for dashboard
+  async getAllUsersForAdmin(options: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }): Promise<{
+    users: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }> {
+    try {
+      const { page = 1, limit = 50, status } = options;
+      
+      logger.info('🎯 Fetching all users for admin dashboard', {
+        page,
+        limit,
+        status
+      });
+
+      const result = await this.userModel.getAllUsersForAdmin({
+        page,
+        limit,
+        status
+      });
+
+      // Transform combined data for admin dashboard
+      const transformedUsers = result.users.map((user: any) => ({
+        id: user.auth_user_id || user.id,
+        name: user.first_name && user.last_name ? 
+          `${user.first_name} ${user.last_name}` : 
+          user.email?.split('@')[0] || `User ${user.auth_user_id?.slice(-8) || user.id?.slice(-8)}`,
+        email: user.email || 'Not available',
+        phone: user.phone || 'Not provided',
+        nationalId: user.national_id || null,
+        status: this.mapUserStatusToDisplayStatus(user.user_status, user.verification_status),
+        kycStatus: user.verification_status || 'not_verified',
+        registrationDate: user.auth_created_at || user.created_at,
+        lastLoginAt: user.last_login_at,
+        region: user.region || 'Not specified',
+        city: user.city || 'Not specified',
+        profileCompleted: user.profile_completed || false,
+        profileCompletionPercentage: user.profile_completion_percentage || 0,
+        propertyType: user.property_type || 'Not specified',
+        electricityConsumption: user.electricity_consumption || 'Not specified',
+        bnplEligible: user.auth_bnpl_eligible || user.bnpl_max_amount > 0,
+        bnplMaxAmount: user.bnpl_max_amount || 0,
+        // Verification status from auth service
+        emailVerified: user.email_verified || false,
+        phoneVerified: user.phone_verified || false,
+        samaVerified: user.sama_verified || false,
+        userType: user.user_type || 'HOMEOWNER',
+        userRole: user.user_role || 'USER',
+        lastUpdated: user.updated_at
+      }));
+
+      logger.info('✅ Successfully transformed users for admin dashboard', {
+        totalUsers: transformedUsers.length,
+        page,
+        limit
+      });
+
+      return {
+        users: transformedUsers,
+        pagination: result.pagination
+      };
+    } catch (error) {
+      logger.error('❌ Error fetching users for admin dashboard', {
+        error: error.message,
+        options
+      });
+      throw error;
+    }
+  }
+
+  // Admin method to get user analytics and KPIs
+  async getUserAnalytics(): Promise<any> {
+    try {
+      logger.info('📊 Fetching user analytics for admin dashboard');
+      
+      const analytics = await this.userModel.getUserAnalytics();
+      
+      logger.info('✅ Successfully retrieved user analytics', {
+        totalUsers: analytics.totalUsers,
+        growthRate: analytics.userGrowth.growthRate,
+        averageCompletion: analytics.profileCompletion.averageCompletion
+      });
+
+      return analytics;
+    } catch (error) {
+      logger.error('❌ Error fetching user analytics', {
+        error: error.message
+      });
+      throw error;
+    }
+  }
+
+  // Helper method to map auth status and verification status to display status
+  private mapUserStatusToDisplayStatus(authStatus?: string, verificationStatus?: string): string {
+    // Auth status takes priority
+    if (authStatus === 'ACTIVE' && (verificationStatus === 'verified' || verificationStatus === 'approved')) {
+      return 'active';
+    }
+    if (authStatus === 'SUSPENDED' || authStatus === 'LOCKED' || authStatus === 'DELETED') {
+      return 'inactive';
+    }
+    if (verificationStatus === 'rejected') {
+      return 'inactive';
+    }
+    if (verificationStatus === 'pending' || verificationStatus === 'under_review') {
+      return 'pending';
+    }
+    // Default based on auth status
+    switch (authStatus) {
+      case 'ACTIVE':
+        return 'active';
+      case 'SUSPENDED':
+      case 'LOCKED':
+      case 'DELETED':
+        return 'inactive';
+      default:
+        return 'pending';
+    }
+  }
+
+  // Helper method to map verification status to user status (legacy)
+  private mapVerificationStatusToUserStatus(verificationStatus?: string): string {
+    switch (verificationStatus) {
+      case 'verified':
+      case 'approved':
+        return 'active';
+      case 'pending':
+      case 'under_review':
+        return 'pending';
+      case 'rejected':
+      case 'suspended':
+        return 'inactive';
+      default:
+        return 'pending';
+    }
+  }
+
   private validateSaudiData(data: Partial<CreateUserProfileDTO>): void {
     // Validate postal code (5 digits)
     if (data.postalCode && !/^\d{5}$/.test(data.postalCode)) {

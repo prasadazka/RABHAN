@@ -1,6 +1,10 @@
 import { Pool, PoolConfig } from 'pg';
 import { readFileSync } from 'fs';
+import dotenv from 'dotenv';
 import { logger } from '../utils/logger';
+
+// Load environment variables
+dotenv.config();
 
 // Database configuration optimized for Saudi scale and performance
 export class DatabaseConfig {
@@ -9,12 +13,13 @@ export class DatabaseConfig {
   private readonly config: PoolConfig;
 
   private constructor() {
+    // Use individual database parameters (same as contractor service)
     this.config = {
       host: process.env.DATABASE_HOST || 'localhost',
       port: parseInt(process.env.DATABASE_PORT || '5432', 10),
       database: process.env.DATABASE_NAME || 'rabhan_user',
       user: process.env.DATABASE_USER || 'postgres',
-      password: process.env.DATABASE_PASSWORD || '12345',
+      password: process.env.DATABASE_PASSWORD || 'postgres',
       
       // Connection pool settings for high performance
       min: parseInt(process.env.DATABASE_POOL_MIN || '10', 10),

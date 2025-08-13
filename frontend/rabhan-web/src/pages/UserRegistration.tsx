@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { theme } from '../theme';
-import DevCredentialHelper from '../components/DevCredentialHelper';
 
 interface UserRegistrationProps {
   onBack: () => void;
@@ -109,35 +108,6 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
-  // Dev credential helper
-  const handleFillDevCredentials = (devData: any) => {
-    setFormData(prev => ({
-      ...prev,
-      firstName: devData.firstName || '',
-      lastName: devData.lastName || '',
-      email: devData.email || '',
-      password: devData.password || '',
-      confirmPassword: devData.password || '',
-      phone: devData.phone ? devData.phone.replace(/^\+966/, '') : '',
-      userType: devData.userType || 'HOMEOWNER',
-      agreeTerms: true
-    }));
-
-    // Auto-verify phone for dev credentials
-    if (devData.phone) {
-      setPhoneVerification({
-        isVerified: true,
-        otpSent: false,
-        otp: '',
-        isVerifying: false,
-        isSendingOTP: false,
-        resendCountdown: 0
-      });
-    }
-
-    // Clear any existing errors
-    setErrors({});
-  };
 
   // Validation functions
   const validateField = (field: keyof FormData, value: any): string | null => {
@@ -421,11 +391,6 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
       fontFamily: theme.typography.fonts.primary,
       direction: isRTL ? 'rtl' : 'ltr'
     }}>
-      {/* Dev Credential Helper */}
-      <DevCredentialHelper
-        formType="user"
-        onFillForm={handleFillDevCredentials}
-      />
       <main style={{
         display: 'flex',
         justifyContent: 'center',

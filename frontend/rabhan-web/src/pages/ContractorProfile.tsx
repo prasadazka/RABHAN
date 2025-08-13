@@ -41,12 +41,18 @@ const ContractorProfile: React.FC<ContractorProfileProps> = ({ user: initialUser
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('not_verified');
   const [isLoadingVerification, setIsLoadingVerification] = useState(true);
   
+  // Separate state for saved user data (used for progress calculation)
+  const [savedUserData, setSavedUserData] = useState(initialUser);
+  const [savedContractorData, setSavedContractorData] = useState<ContractorProfileType | null>(null);
+
   // Subscribe to auth service changes to get updated user data
   useEffect(() => {
     const unsubscribe = authService.subscribe((authState) => {
       if (authState.user) {
         console.log('🔄 Contractor data updated from auth service:', authState.user);
         setUser(authState.user);
+        // Update saved data for progress calculation
+        setSavedUserData(authState.user);
       }
     });
     
@@ -65,6 +71,8 @@ const ContractorProfile: React.FC<ContractorProfileProps> = ({ user: initialUser
         if (result.success && result.profile) {
           console.log('✅ Contractor profile loaded successfully:', result.profile);
           setContractorProfile(result.profile);
+          // Update saved data for progress calculation
+          setSavedContractorData(result.profile);
           
           // Update verification status if available in profile
           if (result.profile.verification_level !== undefined) {
@@ -89,6 +97,79 @@ const ContractorProfile: React.FC<ContractorProfileProps> = ({ user: initialUser
       loadContractorProfile();
     }
   }, [user.id]);
+
+  // Calculate contractor profile completion based on business requirements
+  // Excludes verification tab fields as they are admin-controlled
+  const calculateCompletion = () => {
+    // Essential contractor fields (80% of completion) - Only contractor-editable fields
+    const essentialFieldsWithLabels = [
+      { field: savedUserData.company_name, label: 'company_name' },
+      { field: savedUserData.email, label: 'email' },
+      { field: savedUserData.phone, label: 'phone' },
+      { field: savedContractorData?.business_name, label: 'business_name' },
+      { field: savedContractorData?.contact_person, label: 'contact_person' },
+      { field: savedContractorData?.business_phone, label: 'business_phone' },
+      { field: savedContractorData?.business_email, label: 'business_email' },
+      { field: savedContractorData?.commercial_registration, label: 'commercial_registration' },
+      { field: savedContractorData?.vat_number, label: 'vat_number' },
+      { field: savedContractorData?.business_type, label: 'business_type' },
+      { field: savedContractorData?.established_year, label: 'established_year' },
+      { field: savedContractorData?.address_line1, label: 'address_line1' },
+      { field: savedContractorData?.city, label: 'city' },
+      { field: savedContractorData?.postal_code, label: 'postal_code' },
+      { field: savedContractorData?.years_experience, label: 'years_experience' },
+      { field: savedContractorData?.service_areas, label: 'service_areas' }
+    ];
+    
+    const essentialFields = essentialFieldsWithLabels.map(item => item.field);
+    
+    const filledEssential = essentialFields.filter(field => 
+      field !== undefined && field !== null && field !== '' && 
+      (Array.isArray(field) ? field.length > 0 : true)
+    ).length;
+    const essentialPercent = (filledEssential / essentialFields.length) * 80;
+    
+    // Optional contractor fields (20% of completion) - Only contractor-editable fields
+    const optionalFieldsWithLabels = [
+      { field: savedContractorData?.description, label: 'description' },
+      { field: savedContractorData?.description_ar, label: 'description_ar' },
+      { field: savedContractorData?.website, label: 'website' },
+      { field: savedContractorData?.social_media_links, label: 'social_media_links' },
+      { field: savedContractorData?.team_size, label: 'team_size' },
+      { field: savedContractorData?.specializations, label: 'specializations' }
+    ];
+    
+    const optionalFields = optionalFieldsWithLabels.map(item => item.field);
+    
+    const filledOptional = optionalFields.filter(field => 
+      field !== undefined && field !== null && field !== '' &&
+      (Array.isArray(field) ? field.length > 0 : true)
+    ).length;
+    const optionalPercent = (filledOptional / optionalFields.length) * 20;
+    
+    // Debug logging to see what's filled and what's missing
+    console.log('📊 Business Profile Completion Debug:');
+    console.log('Essential Fields (80% weight):');
+    essentialFieldsWithLabels.forEach(({ field, label }) => {
+      const isFilled = field !== undefined && field !== null && field !== '' && 
+                     (Array.isArray(field) ? field.length > 0 : true);
+      console.log(`  ${isFilled ? '✅' : '❌'} ${label}:`, field);
+    });
+    console.log(`Essential: ${filledEssential}/${essentialFields.length} = ${essentialPercent.toFixed(1)}%`);
+    
+    console.log('Optional Fields (20% weight):');
+    optionalFieldsWithLabels.forEach(({ field, label }) => {
+      const isFilled = field !== undefined && field !== null && field !== '' &&
+                     (Array.isArray(field) ? field.length > 0 : true);
+      console.log(`  ${isFilled ? '✅' : '❌'} ${label}:`, field);
+    });
+    console.log(`Optional: ${filledOptional}/${optionalFields.length} = ${optionalPercent.toFixed(1)}%`);
+    console.log(`Total: ${essentialPercent.toFixed(1)}% + ${optionalPercent.toFixed(1)}% = ${(essentialPercent + optionalPercent).toFixed(1)}%`);
+    
+    return Math.round(essentialPercent + optionalPercent);
+  };
+
+  const completionPercentage = calculateCompletion();
 
   // Enhanced mobile-first responsive hook
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -981,6 +1062,8 @@ const ContractorProfile: React.FC<ContractorProfileProps> = ({ user: initialUser
         if (result.profile) {
           console.log('🔄 Updating contractor profile state with:', result.profile);
           setContractorProfile(result.profile);
+          // Update saved data for progress calculation
+          setSavedContractorData(result.profile);
         } else {
           console.log('🔄 Profile not returned, refreshing from API...');
           // Refresh profile data if not returned
@@ -988,6 +1071,8 @@ const ContractorProfile: React.FC<ContractorProfileProps> = ({ user: initialUser
           if (refreshResult.success && refreshResult.profile) {
             console.log('🔄 Refreshed contractor profile:', refreshResult.profile);
             setContractorProfile(refreshResult.profile);
+            // Update saved data for progress calculation
+            setSavedContractorData(refreshResult.profile);
           } else {
             console.error('❌ Failed to refresh contractor profile:', refreshResult.error);
           }
@@ -1129,6 +1214,36 @@ const ContractorProfile: React.FC<ContractorProfileProps> = ({ user: initialUser
       alignItems: 'center',
       gap: '8px',
       marginTop: '8px',
+    },
+    progressSection: {
+      marginTop: '12px',
+      width: '100%',
+    },
+    progressLabel: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '6px',
+      fontSize: '12px',
+      color: '#6b7280',
+      fontFamily: isRTL ? 'Cairo, sans-serif' : 'Inter, sans-serif',
+    },
+    progressPercentage: {
+      fontWeight: '600',
+      color: '#3eb2b1',
+    },
+    progressBarContainer: {
+      width: '100%',
+      height: '6px',
+      backgroundColor: '#e5e7eb',
+      borderRadius: '3px',
+      overflow: 'hidden',
+    },
+    progressBar: {
+      height: '100%',
+      background: 'linear-gradient(90deg, #3eb2b1 0%, #22d3db 100%)',
+      borderRadius: '3px',
+      transition: 'width 0.5s ease-out',
     },
     mobileMenu: {
       display: isMobile ? 'flex' : 'none',
@@ -2403,6 +2518,23 @@ const ContractorProfile: React.FC<ContractorProfileProps> = ({ user: initialUser
             </div>
             <div style={styles.profileStatus}>
               <VerificationBadge status={verificationStatus} />
+            </div>
+            {/* Business Profile Completion Progress */}
+            <div style={styles.progressSection}>
+              <div style={styles.progressLabel}>
+                <span>Business Profile Completion</span>
+                <span style={styles.progressPercentage}>
+                  {completionPercentage}%
+                </span>
+              </div>
+              <div style={styles.progressBarContainer}>
+                <div 
+                  style={{
+                    ...styles.progressBar,
+                    width: `${completionPercentage}%`
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

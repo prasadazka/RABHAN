@@ -768,6 +768,7 @@ const KYCProgressTracker: React.FC<KYCProgressTrackerProps> = ({
     }
   }, [propDocuments]);
 
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -827,10 +828,73 @@ const KYCProgressTracker: React.FC<KYCProgressTrackerProps> = ({
           category: categoriesFromKyc.find(cat => cat.id === req.categoryId)
         }));
       
-      // Use real documents from props if provided, otherwise use mock documents from KYC
-      if (propDocuments && propDocuments.length > 0) {
+      // Always use real documents from props when provided (even if empty array)
+      if (propDocuments !== undefined && propDocuments !== null) {
         console.log('📋 Using real documents from props:', propDocuments.length);
         setDocuments(propDocuments);
+        
+        // Update KYC requirements with real document status
+        if (propDocuments.length > 0 && kycData.requirements) {
+          console.log('📋 KYC Requirements from backend:', kycData.requirements);
+          console.log('📋 Document categories from props:', propDocuments.map(doc => doc.category_id));
+          
+          console.log('🔍 KYC Category Matching Debug:');
+          console.log('📋 Available document categories:', propDocuments.map(doc => doc.category_id));
+          console.log('📋 Required KYC categories:', kycData.requirements.map(req => req.categoryId));
+          
+          const updatedRequirements = kycData.requirements.map(req => {
+            // Flexible category matching - try exact match first, then variations
+            const exactMatch = propDocuments.some(doc => doc.category_id === req.categoryId);
+            const caseInsensitiveMatch = propDocuments.some(doc => 
+              doc.category_id?.toLowerCase() === req.categoryId?.toLowerCase()
+            );
+            const underscoreMatch = propDocuments.some(doc => 
+              doc.category_id?.replace(/_/g, '-') === req.categoryId?.replace(/_/g, '-') ||
+              doc.category_id?.replace(/-/g, '_') === req.categoryId?.replace(/-/g, '_')
+            );
+            
+            const hasDocumentForCategory = exactMatch || caseInsensitiveMatch || underscoreMatch;
+            console.log(`📋 Category ${req.categoryId}: hasDocument=${hasDocumentForCategory}, required=${req.required}`);
+            
+            // Debug: Show which documents match this category
+            const matchingDocs = propDocuments.filter(doc => 
+              doc.category_id === req.categoryId ||
+              doc.category_id?.toLowerCase() === req.categoryId?.toLowerCase() ||
+              doc.category_id?.replace(/_/g, '-') === req.categoryId?.replace(/_/g, '-') ||
+              doc.category_id?.replace(/-/g, '_') === req.categoryId?.replace(/-/g, '_')
+            );
+            if (matchingDocs.length > 0) {
+              console.log(`  ✅ Found ${matchingDocs.length} docs for ${req.categoryId}:`, matchingDocs.map(d => d.original_filename));
+            } else {
+              console.log(`  ❌ No documents found for category: ${req.categoryId}`);
+              console.log(`  Available categories:`, propDocuments.map(d => d.category_id));
+            }
+            
+            return {
+              ...req,
+              uploaded: hasDocumentForCategory || req.uploaded,
+              // Keep existing approved status, but mark as uploaded if we have docs
+            };
+          });
+          
+          // Recalculate completion percentage
+          const totalRequired = updatedRequirements.filter(req => req.required).length;
+          const completedRequired = updatedRequirements.filter(req => req.required && req.uploaded).length;
+          const newCompletionPercentage = totalRequired > 0 ? Math.round((completedRequired / totalRequired) * 100) : 0;
+          
+          console.log('📊 Updated KYC status with real documents:', {
+            totalRequired,
+            completedRequired, 
+            newCompletionPercentage
+          });
+          
+          // Update KYC status with real document data
+          setKycStatus({
+            ...kycData,
+            requirements: updatedRequirements,
+            completionPercentage: newCompletionPercentage
+          });
+        }
       } else {
         console.log('📋 Using mock documents from KYC data:', documentsFromKyc.length);
         setDocuments(documentsFromKyc);

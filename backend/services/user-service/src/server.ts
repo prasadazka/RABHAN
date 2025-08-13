@@ -46,7 +46,7 @@ app.use(helmet({
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3010', 'http://127.0.0.1:3010'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID', 'X-Request-Time'],
@@ -125,7 +125,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // Server configuration
-const PORT = process.env.PORT || 3002;
+const PORT = parseInt(process.env.PORT || '3002', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 
 // Graceful shutdown handling

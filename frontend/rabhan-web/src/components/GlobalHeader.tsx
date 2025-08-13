@@ -8,6 +8,7 @@ interface GlobalHeaderProps {
   onLogin?: () => void;
   onRegister?: () => void;
   onShowCalculator?: () => void;
+  onShowMarketplace?: () => void;
   onHome?: () => void;
   onDashboard?: () => void;
   isAuthenticated?: boolean;
@@ -25,6 +26,7 @@ const GlobalHeader: React.FC<GlobalHeaderProps> = ({
   onLogin, 
   onRegister,
   onShowCalculator,
+  onShowMarketplace,
   onHome,
   onDashboard,
   isAuthenticated = false, 
@@ -275,6 +277,48 @@ const GlobalHeader: React.FC<GlobalHeaderProps> = ({
             >
               <span>🔆</span>
               <span>{t('navigation.calculator')}</span>
+            </button>
+          )}
+
+          {/* Marketplace Button */}
+          {onShowMarketplace && (
+            <button
+              onClick={onShowMarketplace}
+              style={{
+                background: 'rgba(62, 178, 177, 0.08)',
+                border: `1px solid rgba(62, 178, 177, 0.2)`,
+                color: theme.colors.text.primary,
+                padding: 'clamp(0.625rem, 2vw, 0.75rem) clamp(1rem, 2.5vw, 1.25rem)',
+                borderRadius: theme.radius.lg,
+                fontSize: 'clamp(0.875rem, 2.5vw, 0.9375rem)',
+                fontWeight: theme.typography.weights.semibold,
+                fontFamily: theme.typography.fonts.primary,
+                cursor: 'pointer',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                minHeight: theme.accessibility.minTouchTarget,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                position: 'relative',
+                overflow: 'hidden',
+                letterSpacing: '0.025em'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(62, 178, 177, 0.12)';
+                e.currentTarget.style.borderColor = 'rgba(62, 178, 177, 0.3)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(62, 178, 177, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(62, 178, 177, 0.08)';
+                e.currentTarget.style.borderColor = 'rgba(62, 178, 177, 0.2)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <span>🛒</span>
+              <span>{t('navigation.marketplace', 'Marketplace')}</span>
             </button>
           )}
 
@@ -587,6 +631,35 @@ const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               >
                 <span>🔆</span>
                 <span>{t('navigation.calculator')}</span>
+              </button>
+            )}
+
+            {/* Mobile Marketplace Button */}
+            {onShowMarketplace && (
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onShowMarketplace();
+                }}
+                style={{
+                  background: 'rgba(62, 178, 177, 0.08)',
+                  border: `1px solid rgba(62, 178, 177, 0.2)`,
+                  color: theme.colors.text.primary,
+                  padding: '0.75rem 1rem',
+                  borderRadius: theme.radius.lg,
+                  fontSize: '1rem',
+                  fontWeight: theme.typography.weights.semibold,
+                  cursor: 'pointer',
+                  transition: theme.transitions.normal,
+                  minHeight: theme.accessibility.minTouchTarget,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span>🛒</span>
+                <span>{t('navigation.marketplace', 'Marketplace')}</span>
               </button>
             )}
 

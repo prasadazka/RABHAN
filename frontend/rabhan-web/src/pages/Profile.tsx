@@ -1451,7 +1451,7 @@ const Profile: React.FC<ProfileProps> = ({ user: initialUser, onUpdate }) => {
       personal: [
         { field: 'first_name', label: t('auth.register.firstName'), value: user.first_name || '' },
         { field: 'last_name', label: t('auth.register.lastName'), value: user.last_name || '' },
-        { field: 'phone', label: t('auth.register.phone'), value: user.phone || '', type: 'tel', verificationStatus: user.phone_verified },
+        { field: 'phone', label: t('auth.register.phone'), value: user.phone || '', type: 'tel', readOnly: true, verificationStatus: user.phone_verified },
         { field: 'email', label: t('auth.register.email'), value: user.email, type: 'email', readOnly: true, verificationStatus: user.email_verified },
       ],
       address: [

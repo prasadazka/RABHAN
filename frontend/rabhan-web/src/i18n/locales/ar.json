@@ -12,6 +12,9 @@
     "en": "English",
     "ar": "العربية"
   },
+  "currency": {
+    "sar": "ريال"
+  },
   "navigation": {
     "home": "الرئيسية",
     "about": "من نحن",
@@ -49,6 +52,10 @@
     "selectOption": "اختر خياراً",
     "selectOptions": "اختر خيارات...",
     "searchOptions": "البحث في الخيارات...",
+    "retry": "إعادة المحاولة",
+    "refresh": "تحديث",
+    "submitting": "جاري الإرسال...",
+    "viewQuotes": "عرض العروض",
     "clearAll": "مسح الكل",
     "remove": "إزالة",
     "more": "المزيد",
@@ -56,7 +63,9 @@
     "noResultsFound": "لم يتم العثور على نتائج",
     "createdAt": "تاريخ الإنشاء",
     "none": "لا يوجد",
-    "selectOption": "اختر خياراً"
+    "selectOption": "اختر خياراً",
+    "selecting": "جاري الاختيار...",
+    "backToComparison": "العودة للمقارنة"
   },
   "countries": {
     "saudi_arabia": "المملكة العربية السعودية",
@@ -790,6 +799,7 @@
     "sidebar": {
       "dashboard": "لوحة التحكم",
       "calculator": "حاسبة الطاقة الشمسية",
+      "quotes": "طلبات العروض",
       "financing": "التمويل",
       "projects": "المشاريع",
       "marketplace": "السوق",
@@ -1301,14 +1311,377 @@
       "comingSoon": "إدارة قائمة المنتجات ستكون متاحة قريباً."
     },
     "quotes": {
-      "title": "إدارة عروض الأسعار",
-      "management": "نظام إدارة عروض الأسعار", 
-      "comingSoon": "نظام إدارة عروض الأسعار سيكون متاحاً قريباً."
+      "title": "طلبات العروض",
+      "assignedRequests": "طلبات العروض المخصصة",
+      "requests": "طلبات",
+      "noRequests": {
+        "title": "لا توجد طلبات مخصصة",
+        "message": "لم يتم تخصيص أي طلبات عروض لك حتى الآن. تحقق لاحقًا من الفرص الجديدة."
+      },
+      "tabs": {
+        "assigned": "الطلبات المخصصة",
+        "submitted": "العروض المقدمة"
+      },
+      "status": "الحالة",
+      "statuses": {
+        "assigned": "مخصص",
+        "viewed": "تم الاطلاع",
+        "accepted": "مقبول",
+        "rejected": "مرفوض",
+        "submitted": "مقدم",
+        "pending": "في الانتظار"
+      },
+      "assignmentStatus": "حالة التخصيص",
+      "propertyDetails": "تفاصيل العقار",
+      "location": "الموقع",
+      "systemSize": "حجم النظام",
+      "serviceArea": "منطقة الخدمة",
+      "requestDate": "تاريخ الطلب",
+      "requestId": "معرف الطلب",
+      "solarSystem": "نظام الطاقة الشمسية",
+      "quoteSubmitted": "تم تقديم العرض",
+      "submitQuote": "مطلوب تقديم عرض",
+      "submitQuoteMessage": "لقد قبلت هذا الطلب. يرجى تقديم عرضك للمتابعة.",
+      "alreadyAccepted": "لقد قبلت هذا الطلب بالفعل.",
+      "alreadyRejected": "لقد رفضت هذا الطلب بالفعل.",
+      "submittedQuotes": "العروض المقدمة",
+      "submittedQuotesMessage": "اعرض وإدارة العروض المقدمة. تتبع حالتها والردود عليها.",
+      "viewQuotations": "عرض العروض المسعرة",
+      "compareQuotations": "مقارنة العروض المسعرة",
+      "quotationsAvailable": "عرض مسعر متاح",
+      "comparison": "المقارنة",
+      "details": "التفاصيل",
+      "bestValue": "أفضل قيمة",
+      "recommended": "موصى به",
+      "fastestInstallation": "أسرع تركيب",
+      "days": "أيام",
+      "totalPrice": "السعر الإجمالي",
+      "lineItems": "عناصر السعر",
+      "paymentTerms": "شروط الدفع",
+      "selectThisQuote": "اختر هذا العرض",
+      "noQuotationsAvailable": "لا توجد عروض مسعرة متاحة",
+      "waitForContractorQuotes": "يرجى انتظار تقديم المقاولين لعروضهم المسعرة التفصيلية",
+      "detailedQuotation": "العرض المسعر التفصيلي",
+      "item": "العنصر",
+      "description": "الوصف",
+      "quantity": "الكمية",
+      "unitPrice": "سعر الوحدة",
+      "totalAmount": "المبلغ الإجمالي",
+      "installationDeadline": "موعد التركيب النهائي",
+      "selectThisQuotation": "اختر هذا العرض المسعر",
+      "quotationSummary": "ملخص العرض المسعر",
+      "quotedPrice": "السعر المقترح",
+      "baseQuotationAmount": "مبلغ العرض الأساسي",
+      "youReceive": "ستحصل على",
+      "afterProcessingFees": "بعد رسوم المعالجة وضريبة القيمة المضافة",
+      "pricingNote": "مبلغ الدفع النهائي يشمل ضريبة القيمة المضافة ورسوم المعالجة. السعر المقترح هو ما سيظهر للعملاء.",
+      "actions": {
+        "accept": "قبول الطلب",
+        "reject": "رفض الطلب",
+        "submitQuote": "تقديم عرض"
+      },
+      "quotation": "العرض المسعر",
+      "submittedDate": "تاريخ التقديم",
+      "loadingQuotes": "جاري تحميل العروض...",
+      "noSubmittedQuotes": "لا توجد عروض مقدمة",
+      "noSubmittedQuotesMessage": "لم تقدم أي عروض مسعرة حتى الآن. ابدأ بقبول طلبات العروض وتقديم مقترحاتك.",
+      "items": "عناصر",
+      "viewDetails": "عرض التفاصيل",
+      "quotationDetails": "تفاصيل العرض",
+      "systemCapacity": "قدرة النظام",
+      "systemSpecifications": "مواصفات النظام",
+      "solarCapacity": "قدرة الطاقة الشمسية",
+      "storageCapacity": "سعة التخزين",
+      "monthlyProduction": "الإنتاج الشهري",
+      "serialNumber": "الرقم التسلسلي",
+      "pricingBreakdown": "تفصيل الأسعار",
+      "subtotal": "المجموع الفرعي",
+      "rabhanCommission": "عمولة رابحان",
+      "rabhanMarkup": "هامش رابحان",
+      "customerPrice": "سعر العميل",
+      "contractorEarnings": "أرباح المقاول",
+      "additionalInformation": "معلومات إضافية",
+      "vatNumber": "رقم ضريبة القيمة المضافة",
+      "walletCredit": "رصيد المحفظة",
+      "bankTransfer": "تحويل بنكي"
     },
     "wallet": {
       "title": "المحفظة المالية",
       "paymentTracking": "تتبع المدفوعات والمحفظة",
       "comingSoon": "تتبع المدفوعات وإدارة المحفظة ستكون متاحة قريباً."
+    }
+  },
+  "marketplace": {
+    "title": "سوق منتجات الطاقة الشمسية",
+    "subtitle": "تصفح واشتر منتجات طاقة شمسية عالية الجودة من مقاولين معتمدين",
+    "searchPlaceholder": "البحث في منتجات الطاقة الشمسية...",
+    "filter": "تصفية",
+    "inStock": "متوفر",
+    "outOfStock": "غير متوفر",
+    "inclVAT": "شامل الضريبة",
+    "exclVAT": "غير شامل الضريبة",
+    "addToCart": "أضف إلى السلة",
+    "inCart": "في السلة",
+    "items": "عناصر",
+    "loading": "جاري تحميل المنتجات...",
+    "errorTitle": "خطأ في تحميل المنتجات",
+    "retry": "حاول مرة أخرى",
+    "noProducts": "لم يتم العثور على منتجات",
+    "noProductsDesc": "حاول تعديل معايير البحث",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+  "quotes": {
+    "form": {
+      "title": "طلب عرض سعر للطاقة الشمسية",
+      "subtitle": "احصل على عروض أسعار مخصصة من مقاولين معتمدين",
+      "submit": "إرسال الطلب",
+      "sections": {
+        "systemAndContact": "النظام والاتصال",
+        "location": "الموقع",
+        "propertyDetails": "تفاصيل العقار",
+        "notes": "الملاحظات",
+        "notesOptional": "الملاحظات (اختيارية)"
+      },
+      "systemSize": {
+        "label": "حجم النظام (كيلو واط)",
+        "placeholder": "6.0",
+        "help": "حجم النظام الموصى به بناءً على احتياجاتك من الطاقة"
+      },
+      "location": {
+        "label": "موقع التركيب",
+        "placeholder": "العنوان الكامل متضمناً الحي والمدينة والمنطقة"
+      },
+      "serviceArea": {
+        "label": "منطقة الخدمة",
+        "placeholder": "اختر مدينتك/منطقتك",
+        "options": {
+          "riyadh": "الرياض",
+          "jeddah": "جدة",
+          "dammam": "الدمام",
+          "mecca": "مكة",
+          "medina": "المدينة"
+        }
+      },
+      "installationDate": {
+        "label": "تاريخ التركيب المفضل"
+      },
+      "phone": {
+        "label": "رقم الاتصال",
+        "placeholder": "+966 50 123 4567"
+      },
+      "notes": {
+        "label": "ملاحظات إضافية (اختياري)",
+        "placeholder": "أي متطلبات خاصة أو أسئلة أو تفضيلات..."
+      },
+      "propertyDetails": {
+        "title": "تفاصيل العقار",
+        "propertyType": "نوع العقار",
+        "roofType": "نوع السطح",
+        "roofOrientation": "اتجاه السطح",
+        "shadingIssues": "يوجد مشاكل تظليل في العقار (أشجار، مباني، إلخ)",
+        "propertyTypes": {
+          "villa": "فيلا",
+          "apartment": "شقة",
+          "townhouse": "تاون هاوس",
+          "commercial": "تجاري"
+        },
+        "roofTypes": {
+          "flat": "سطح مسطح",
+          "sloped": "سطح مائل",
+          "mixed": "مختلط"
+        },
+        "roofOrientations": {
+          "south": "جنوب",
+          "southwest": "جنوب غرب",
+          "southeast": "جنوب شرق",
+          "east": "شرق",
+          "west": "غرب",
+          "mixed": "متعدد الاتجاهات"
+        }
+      },
+      "success": {
+        "title": "تم إرسال طلب العرض!",
+        "message": "تم إرسال طلب العرض إلى المقاولين المعتمدين في منطقتك. ستحصل على العروض خلال 24-48 ساعة."
+      },
+      "errors": {
+        "systemSizeRange": "حجم النظام يجب أن يكون بين 1-50 كيلو واط",
+        "locationRequired": "موقع التركيب مطلوب",
+        "serviceAreaRequired": "يرجى اختيار منطقة الخدمة",
+        "dateRequired": "تاريخ التركيب المفضل مطلوب",
+        "dateInFuture": "تاريخ التركيب يجب أن يكون غداً على الأقل",
+        "phoneRequired": "رقم الهاتف مطلوب",
+        "phoneTooLong": "رقم الهاتف طويل جداً (الحد الأقصى 13 رقم مع +966)",
+        "phoneInvalid": "يرجى إدخال رقم هاتف سعودي صحيح",
+        "submitFailed": "فشل في إرسال طلب العرض. يرجى المحاولة مرة أخرى."
+      },
+      "steps": {
+        "basicInfo": "المعلومات الأساسية",
+        "basicInfoDesc": "أخبرنا عن عقارك ومتطلبات النظام",
+        "contractorSelection": "اختيار المقاولين",
+        "contractorSelectionDesc": "اختر بالضبط 3 مقاولين من منطقتك لفحص العقار وتقديم العروض",
+        "finalSubmission": "الإرسال النهائي",
+        "finalSubmissionDesc": "راجع اختياراتك وأكمل طلب العرض"
+      }
+    },
+    "steps": {
+      "basicInfo": "المعلومات الأساسية",
+      "basicInfoDesc": "أخبرنا عن عقارك ومتطلبات النظام",
+      "contractorSelection": "اختيار المقاولين",
+      "contractorSelectionDesc": "اختر بالضبط 3 مقاولين من منطقتك لفحص العقار وتقديم العروض",
+      "finalSubmission": "الإرسال النهائي",
+      "finalSubmissionDesc": "راجع اختياراتك وأكمل طلب العرض"
+    },
+    "title": "عروض أسعار الطاقة الشمسية",
+    "subtitle": "اطلب عروض أسعار من مقاولين معتمدين وقارن العروض لتركيب نظام الطاقة الشمسية الخاص بك",
+    "tabs": {
+      "myRequests": "طلباتي",
+      "newRequest": "طلب جديد"
+    },
+    "myRequests": {
+      "title": "طلبات العروض الخاصة بك",
+      "subtitle": "تتبع طلبات العروض واعرض العروض المستلمة",
+      "empty": {
+        "title": "لا توجد طلبات عروض أسعار بعد",
+        "message": "ابدأ بطلب عروض أسعار من المقاولين المعتمدين في منطقتك. إنه مجاني ويستغرق بضع دقائق فقط."
+      }
+    },
+    "actions": {
+      "newRequest": "طلب جديد",
+      "createFirst": "إنشاء أول طلب",
+      "viewQuotes": "عرض العروض",
+      "editRequest": "تعديل الطلب"
+    },
+    "status": {
+      "title": "الحالة",
+      "pending": "قيد الانتظار",
+      "quotesReceived": "تم استلام العروض",
+      "quoteSelected": "تم اختيار العرض",
+      "completed": "مكتمل",
+      "cancelled": "ملغي"
+    },
+    "system": "نظام الطاقة الشمسية",
+    "solarSystem": "نظام الطاقة الشمسية",
+    "requestId": "رقم الطلب",
+    "propertyDetails": "تفاصيل العقار",
+    "location": "الموقع",
+    "contactPhone": "رقم الاتصال",
+    "propertyType": "نوع العقار",
+    "roofType": "نوع السطح",
+    "roofOrientation": "اتجاه السطح",
+    "shadingIssues": "مشاكل الظلال",
+    "installationSchedule": "جدولة التركيب",
+    "inspectionSchedules": "جدولة المعاينة",
+    "contractor": "المقاول",
+    "selectedQuote": "العرض المختار",
+    "selectedOn": "تم الاختيار في",
+    "estimatedCost": "التكلفة المقدرة",
+    "preferredDate": "التاريخ المفضل",
+    "notSpecified": "غير محدد",
+    "quotesReceivedCount": "عروض أسعار مستلمة",
+    "quotes": "عروض",
+    "requests": "طلبات",
+    "submittedOn": "تم الإرسال في",
+    "selectedContractors": "المقاولين المحددين",
+    "contractor": "مقاول",
+    "solarCompany": "شركة الطاقة الشمسية",
+    "receivedQuotes": "عروض الأسعار المستلمة",
+    "noQuotes": {
+      "title": "لا توجد عروض أسعار متاحة",
+      "message": "لم يقم المقاولون بتقديم عروض أسعار حتى الآن. يرجى المراجعة لاحقاً."
+    },
+    "installationTimeline": "جدول التركيب الزمني",
+    "systemCapacity": "قدرة النظام",
+    "panels": "الألواح الشمسية",
+    "inverter": "المحول",
+    "warrantyTerms": "شروط الضمان",
+    "equipment": "المعدات",
+    "performance": "الأداء",
+    "installation": "التركيب",
+    "years": "سنوات",
+    "days": "أيام",
+    "status": {
+      "title": "الحالة",
+      "submitted": "تم تقديم العرض",
+      "pending": "قيد الانتظار",
+      "assigned": "مُعيَّن",
+      "accepted": "مقبول",
+      "quotesReceived": "تم استلام العروض",
+      "approved": "موافق عليه",
+      "pendingReview": "قيد المراجعة"
+    },
+    "actions": {
+      "newRequest": "طلب جديد",
+      "viewQuotes": "عرض العروض", 
+      "editRequest": "تعديل الطلب",
+      "selectQuote": "اختيار العرض",
+      "viewDetails": "عرض التفاصيل"
+    },
+    "detailedQuotation": "عرض السعر المفصل",
+    "readyForSelection": "جاهز للاختيار",
+    "underAdminReview": "قيد المراجعة الإدارية",
+    "includingVAT": "شامل ضريبة القيمة المضافة",
+    "excludingVAT": "قبل ضريبة القيمة المضافة",
+    "installationTime": "وقت التركيب",
+    "itemizedBreakdown": "تفصيل العناصر",
+    "vat": "ضريبة القيمة المضافة",
+    "totalAmount": "المبلغ الإجمالي",
+    "systemSpecs": "مواصفات النظام",
+    "warranty": "الضمان",
+    "providerInfo": "معلومات المورد",
+    "quoteValidUntil": "العرض صالح حتى",
+    "selectThisQuote": "اختيار هذا العرض",
+    "totalPrice": "السعر الإجمالي",
+    "subtotal": "المجموع الفرعي",
+    "storageCapacity": "سعة التخزين",
+    "monthlyProduction": "الإنتاج الشهري",
+    "paymentTerms": "شروط الدفع",
+    "installationDeadline": "موعد التركيب النهائي"
+  },
+  "contractors": {
+    "loading": "جاري تحميل المقاولين...",
+    "loadError": "فشل في تحميل المقاولين. يرجى المحاولة مرة أخرى.",
+    "reviews": "مراجعة",
+    "stars": "نجوم",
+    "years": "سنوات",
+    "experience": "الخبرة",
+    "projects": "المشاريع",
+    "serviceAreas": "مناطق الخدمة",
+    "select": "اختيار",
+    "selected": "محدد",
+    "schedule": "جدولة",
+    "scheduled": "مجدولة",
+    "filters": "الفلاتر",
+    "verification": {
+      "verified": "موثق",
+      "partial": "جزئي",
+      "unverified": "غير موثق"
+    },
+    "filterOptions": {
+      "minRating": "التقييم الأدنى",
+      "anyRating": "أي تقييم",
+      "maxDistance": "أقصى مسافة"
+    },
+    "selection": {
+      "title": "اختر المقاولين",
+      "subtitle": "اختر بالضبط 3 مقاولين من منطقتك لفحص العقار والحصول على عروض الأسعار",
+      "selected": "مقاولين محددين",
+      "selectExactly": "يجب اختيار 3 مقاولين بالضبط للمتابعة",
+      "proceedToQuote": "المتابعة إلى طلب العرض",
+      "noContractors": "لم يتم العثور على مقاولين في منطقتك",
+      "noContractorsHint": "جرب تعديل الفلاتر أو اختيار منطقة خدمة مختلفة",
+      "penaltyWarning": {
+        "title": "مهم: اتفاقية الغرامة",
+        "message": "بالمتابعة، فإنك توافق على أنه في حالة عدم المتابعة مع أي مقاول بعد الفحوصات، ستطبق رسوم غرامة (50% ستدفع للمقاولين كتعويض)."
+      }
+    },
+    "scheduling": {
+      "title": "جدولة الفحص",
+      "reschedule": "إعادة جدولة الفحص",
+      "currentSchedule": "الجدولة الحالية",
+      "selectDate": "اختر تاريخ الفحص",
+      "selectTime": "اختر الوقت المفضل",
+      "confirm": "جدولة الفحص"
     }
   }
 }

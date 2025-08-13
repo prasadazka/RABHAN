@@ -139,4 +139,22 @@ router.put(
   asyncHandler((req, res, next) => getUserController().updateVerificationStatus(req, res, next))
 );
 
+// Admin endpoint - Get all users for dashboard
+router.get(
+  '/admin/users',
+  authenticate,
+  authorize(['ADMIN', 'SUPER_ADMIN']),
+  adminRateLimit,
+  asyncHandler((req, res, next) => getUserController().getAllUsersForAdmin(req, res, next))
+);
+
+// Admin endpoint - Get user analytics and KPIs
+router.get(
+  '/admin/analytics',
+  authenticate,
+  authorize(['ADMIN', 'SUPER_ADMIN']),
+  adminRateLimit,
+  asyncHandler((req, res, next) => getUserController().getUserAnalytics(req, res, next))
+);
+
 export default router;

@@ -5,7 +5,18 @@ import { theme } from '../theme';
 import Sidebar from '../components/Sidebar';
 import Profile from './Profile';
 import Documents from './Documents';
+import UserMarketplace from './UserMarketplace';
+import ProductDetail from './ProductDetail';
+import Checkout from './Checkout';
+import Quotes from './Quotes';
 import { CleanSolarCalculator } from '../components/calculator/CleanSolarCalculator';
+import { Product } from '../services/marketplace.service';
+
+// Shopping cart item interface
+interface CartItem {
+  product: Product;
+  quantity: number;
+}
 
 interface UserAppProps {
   user: {
@@ -40,6 +51,7 @@ const UserApp: React.FC<UserAppProps> = ({ user, onLogout, initialActiveItem = '
   const isRTL = i18n.language === 'ar';
   const [activeMenuItem, setActiveMenuItem] = useState(initialActiveItem);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [cart, setCart] = useState<CartItem[]>([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -59,10 +71,68 @@ const UserApp: React.FC<UserAppProps> = ({ user, onLogout, initialActiveItem = '
       setActiveMenuItem('settings');
     } else if (path === '/dashboard/documents') {
       setActiveMenuItem('documents');
+    } else if (path === '/dashboard/quotes') {
+      setActiveMenuItem('quotes');
+    } else if (path === '/dashboard/marketplace') {
+      setActiveMenuItem('marketplace');
+    } else if (path.startsWith('/dashboard/marketplace/product/')) {
+      setActiveMenuItem('marketplace');
+    } else if (path === '/dashboard/checkout') {
+      setActiveMenuItem('marketplace'); // Keep marketplace active for checkout
     } else if (path === '/dashboard') {
       setActiveMenuItem('dashboard');
     }
   }, [location.pathname]);
+
+  // Cart functions
+  const addToCart = (product: Product, quantity: number = 1) => {
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => item.product.id === product.id);
+      if (existingItem) {
+        return prevCart.map(item =>
+          item.product.id === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      } else {
+        return [...prevCart, { product, quantity }];
+      }
+    });
+    
+    console.log(`🛒 Added ${quantity} x ${product.name} to cart`);
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCart(prevCart => prevCart.filter(item => item.product.id !== productId));
+  };
+
+  const updateCartQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(productId);
+      return;
+    }
+    
+    setCart(prevCart =>
+      prevCart.map(item =>
+        item.product.id === productId
+          ? { ...item, quantity }
+          : item
+      )
+    );
+  };
+
+  const getTotalCartItems = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0);
+  };
+
+  const getTotalCartValue = () => {
+    return cart.reduce((total, item) => total + ((parseFloat(item.product.price) || 0) * item.quantity), 0);
+  };
+
+  const clearCart = () => {
+    setCart([]);
+    console.log('🛒 Cart cleared');
+  };
 
   // Get display name
   const getDisplayName = () => {
@@ -92,6 +162,12 @@ const UserApp: React.FC<UserAppProps> = ({ user, onLogout, initialActiveItem = '
         break;
       case 'documents':
         navigate('/dashboard/documents');
+        break;
+      case 'quotes':
+        navigate('/dashboard/quotes');
+        break;
+      case 'marketplace':
+        navigate('/dashboard/marketplace');
         break;
       case 'dashboard':
         navigate('/dashboard');
@@ -221,23 +297,41 @@ const UserApp: React.FC<UserAppProps> = ({ user, onLogout, initialActiveItem = '
         )}
         
         {activeMenuItem === 'marketplace' && (
-          <div style={{
-            textAlign: 'center',
-            padding: '4rem 2rem',
-            color: '#6b7280'
-          }}>
-            <h1 style={{
-              fontSize: '2rem',
-              fontWeight: '700',
-              color: '#1a1a1a',
-              marginBottom: '1rem'
-            }}>
-              {t('userApp.sidebar.marketplace')}
-            </h1>
-            <p>Marketplace will be displayed here</p>
-          </div>
+          location.pathname === '/dashboard/checkout' ? (
+            <Checkout 
+              user={user} 
+              cart={cart}
+              getTotalCartItems={getTotalCartItems}
+              getTotalCartValue={getTotalCartValue}
+              clearCart={clearCart}
+            />
+          ) : location.pathname.startsWith('/dashboard/marketplace/product/') ? (
+            <ProductDetail 
+              user={user} 
+              cart={cart}
+              addToCart={addToCart}
+              removeFromCart={removeFromCart}
+              updateCartQuantity={updateCartQuantity}
+              getTotalCartItems={getTotalCartItems}
+              getTotalCartValue={getTotalCartValue}
+            />
+          ) : (
+            <UserMarketplace 
+              user={user}
+              cart={cart}
+              addToCart={addToCart}
+              removeFromCart={removeFromCart}
+              updateCartQuantity={updateCartQuantity}
+              getTotalCartItems={getTotalCartItems}
+              getTotalCartValue={getTotalCartValue}
+            />
+          )
         )}
         
+        {activeMenuItem === 'quotes' && user.role === 'USER' && (
+          <Quotes user={user} />
+        )}
+
         {activeMenuItem === 'documents' && (
           <Documents userType={user.role as 'USER' | 'CONTRACTOR'} />
         )}

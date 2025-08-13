@@ -361,6 +361,97 @@ export class ContractorService {
       throw error;
     }
   }
+
+  /**
+   * Get all contractors for admin dashboard
+   * Returns detailed contractor profiles with all fields
+   */
+  async getContractorsForAdmin(limit: number = 100, offset: number = 0): Promise<ContractorProfile[]> {
+    try {
+      logger.info('Fetching contractors for admin dashboard', {
+        limit,
+        offset
+      });
+
+      const query = `
+        SELECT 
+          id, user_id, business_name, business_name_ar, business_type,
+          commercial_registration, vat_number, email, phone, whatsapp,
+          website, address_line1, address_line2, city, region, postal_code,
+          established_year, employee_count, description, description_ar,
+          service_categories, service_areas, years_experience,
+          status, verification_level,
+          average_rating, total_reviews, completed_projects,
+          preferred_language, email_notifications, sms_notifications, marketing_consent,
+          created_at, updated_at,
+          created_by, updated_by, ip_address, user_agent
+        FROM contractors 
+        ORDER BY created_at DESC
+        LIMIT $1 OFFSET $2
+      `;
+
+      const result = await executeQuery(query, [limit, offset], 'get_contractors_for_admin');
+      
+      const contractors = result.rows.map(row => ({
+        id: row.id,
+        userId: row.user_id,
+        businessName: row.business_name,
+        businessNameAr: row.business_name_ar,
+        businessType: row.business_type as BusinessType,
+        commercialRegistration: row.commercial_registration,
+        vatNumber: row.vat_number,
+        email: row.email,
+        phone: row.phone,
+        whatsapp: row.whatsapp,
+        website: row.website,
+        addressLine1: row.address_line1,
+        addressLine2: row.address_line2,
+        city: row.city,
+        region: row.region,
+        postalCode: row.postal_code,
+        establishedYear: row.established_year,
+        employeeCount: row.employee_count,
+        description: row.description,
+        descriptionAr: row.description_ar,
+        serviceCategories: row.service_categories || [],
+        serviceAreas: row.service_areas || [],
+        yearsExperience: row.years_experience,
+        status: row.status as ContractorStatus,
+        verificationLevel: row.verification_level || 0,
+        averageRating: parseFloat(row.average_rating) || 0,
+        totalReviews: row.total_reviews || 0,
+        completedProjects: row.completed_projects || 0,
+        preferredLanguage: row.preferred_language || 'ar',
+        emailNotifications: row.email_notifications !== false,
+        smsNotifications: row.sms_notifications !== false,
+        marketingConsent: row.marketing_consent === true,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        metadata: {
+          createdBy: row.created_by,
+          updatedBy: row.updated_by,
+          ipAddress: row.ip_address,
+          userAgent: row.user_agent
+        }
+      })) as ContractorProfile[];
+
+      logger.info('Successfully fetched contractors for admin', {
+        contractors_count: contractors.length,
+        limit,
+        offset
+      });
+
+      return contractors;
+
+    } catch (error) {
+      logger.error('Failed to get contractors for admin', {
+        limit,
+        offset,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
   
   // Generate a unique phone number by adding a suffix if needed
   private async generateUniquePhone(basePhone: string): Promise<string> {

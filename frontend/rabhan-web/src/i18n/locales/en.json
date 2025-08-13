@@ -12,6 +12,9 @@
     "en": "English",
     "ar": "العربية"
   },
+  "currency": {
+    "sar": "SAR"
+  },
   "navigation": {
     "home": "Home",
     "about": "About",
@@ -48,6 +51,11 @@
     "selectOption": "Select an option",
     "selectOptions": "Select options...",
     "searchOptions": "Search options...",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "submitting": "Submitting...",
+    "viewQuotes": "View Quotes",
     "clearAll": "Clear all",
     "remove": "Remove",
     "more": "more",
@@ -58,7 +66,9 @@
     "optional": "Optional",
     "notSet": "Not Set",
     "createdAt": "Created At",
-    "none": "None"
+    "none": "None",
+    "selecting": "Selecting...",
+    "backToComparison": "Back to Comparison"
   },
   "countries": {
     "saudi_arabia": "Saudi Arabia",
@@ -890,6 +900,7 @@
     "sidebar": {
       "dashboard": "Dashboard",
       "calculator": "Solar Calculator",
+      "quotes": "Quote Requests",
       "financing": "Financing",
       "projects": "Projects",
       "marketplace": "Marketplace",
@@ -1561,14 +1572,377 @@
       "comingSoon": "Product listing management will be available soon."
     },
     "quotes": {
-      "title": "Quote Management",
-      "management": "Quote Management System", 
-      "comingSoon": "Quote management system will be available soon."
+      "title": "Quote Requests",
+      "assignedRequests": "Assigned Quote Requests",
+      "requests": "requests",
+      "noRequests": {
+        "title": "No assigned requests",
+        "message": "You haven't been assigned any quote requests yet. Check back later for new opportunities."
+      },
+      "tabs": {
+        "assigned": "Assigned Requests",
+        "submitted": "Submitted Quotes"
+      },
+      "status": "Status",
+      "statuses": {
+        "assigned": "Assigned",
+        "viewed": "Viewed", 
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "submitted": "Submitted",
+        "pending": "Pending"
+      },
+      "assignmentStatus": "Assignment Status",
+      "propertyDetails": "Property Details",
+      "location": "Location",
+      "systemSize": "System Size",
+      "serviceArea": "Service Area",
+      "requestDate": "Request Date",
+      "requestId": "Request ID",
+      "solarSystem": "Solar System",
+      "quoteSubmitted": "Quote Submitted",
+      "submitQuote": "Submit Quote Required",
+      "submitQuoteMessage": "You've accepted this request. Please submit your quote to proceed.",
+      "alreadyAccepted": "You have already accepted this request.",
+      "alreadyRejected": "You have already rejected this request.",
+      "submittedQuotes": "Submitted Quotes",
+      "submittedQuotesMessage": "View and manage your submitted quotes. Track their status and responses.",
+      "viewQuotations": "View Quotations",
+      "compareQuotations": "Compare Quotations",
+      "quotationsAvailable": "quotations available",
+      "comparison": "Comparison",
+      "details": "Details",
+      "bestValue": "Best Value",
+      "recommended": "Recommended",
+      "fastestInstallation": "Fastest Installation",
+      "days": "days",
+      "totalPrice": "Total Price",
+      "lineItems": "line items",
+      "paymentTerms": "Payment Terms",
+      "selectThisQuote": "Select This Quote",
+      "noQuotationsAvailable": "No Quotations Available",
+      "waitForContractorQuotes": "Please wait for contractors to submit their detailed quotations",
+      "detailedQuotation": "Detailed Quotation",
+      "item": "Item",
+      "description": "Description",
+      "quantity": "Qty",
+      "unitPrice": "Unit Price",
+      "totalAmount": "Total Amount",
+      "installationDeadline": "Installation Deadline",
+      "selectThisQuotation": "Select This Quotation",
+      "quotationSummary": "Quotation Summary",
+      "quotedPrice": "Quoted Price",
+      "baseQuotationAmount": "Base quotation amount",
+      "youReceive": "You Receive",
+      "afterProcessingFees": "After processing fees & VAT",
+      "pricingNote": "Final payment amount includes VAT and processing fees. Quoted price is what will be shown to customers.",
+      "actions": {
+        "accept": "Accept Request",
+        "reject": "Reject Request",
+        "submitQuote": "Submit Quote"
+      },
+      "quotation": "Quotation",
+      "submittedDate": "Submitted Date",
+      "loadingQuotes": "Loading quotations...",
+      "noSubmittedQuotes": "No Submitted Quotations",
+      "noSubmittedQuotesMessage": "You haven't submitted any quotations yet. Start by accepting quote requests and submitting your proposals.",
+      "items": "items",
+      "viewDetails": "View Details",
+      "quotationDetails": "Quotation Details",
+      "systemCapacity": "System Capacity",
+      "systemSpecifications": "System Specifications",
+      "solarCapacity": "Solar Capacity",
+      "storageCapacity": "Storage Capacity", 
+      "monthlyProduction": "Monthly Production",
+      "serialNumber": "S/N",
+      "pricingBreakdown": "Pricing Breakdown",
+      "subtotal": "Subtotal",
+      "rabhanCommission": "Rabhan Commission",
+      "rabhanMarkup": "Rabhan Markup", 
+      "customerPrice": "Customer Price",
+      "contractorEarnings": "Contractor Earnings",
+      "additionalInformation": "Additional Information",
+      "vatNumber": "VAT Number",
+      "walletCredit": "Wallet Credit",
+      "bankTransfer": "Bank Transfer"
     },
     "wallet": {
       "title": "Financial Wallet",
       "paymentTracking": "Payment Tracking & Wallet",
       "comingSoon": "Payment tracking and wallet management will be available soon."
+    }
+  },
+  "marketplace": {
+    "title": "Solar Products Marketplace",
+    "subtitle": "Browse and purchase high-quality solar products from verified contractors",
+    "searchPlaceholder": "Search solar products...",
+    "filter": "Filter",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "inclVAT": "incl. VAT",
+    "exclVAT": "excl. VAT",
+    "addToCart": "Add to Cart",
+    "inCart": "In Cart",
+    "items": "items",
+    "loading": "Loading products...",
+    "errorTitle": "Error Loading Products",
+    "retry": "Try Again",
+    "noProducts": "No products found",
+    "noProductsDesc": "Try adjusting your search criteria",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "quotes": {
+    "form": {
+      "title": "Request Solar Quote",
+      "subtitle": "Get personalized quotes from verified contractors",
+      "submit": "Submit Request",
+      "sections": {
+        "systemAndContact": "System & Contact",
+        "location": "Location",
+        "propertyDetails": "Property Details",
+        "notes": "Notes",
+        "notesOptional": "Notes (Optional)"
+      },
+      "systemSize": {
+        "label": "System Size (kWp)",
+        "placeholder": "6.0",
+        "help": "Recommended system size based on your energy needs"
+      },
+      "location": {
+        "label": "Installation Location",
+        "placeholder": "Full address including district, city, and region"
+      },
+      "serviceArea": {
+        "label": "Service Area",
+        "placeholder": "Select your city/region",
+        "options": {
+          "riyadh": "Riyadh",
+          "jeddah": "Jeddah",
+          "dammam": "Dammam",
+          "mecca": "Mecca",
+          "medina": "Medina"
+        }
+      },
+      "installationDate": {
+        "label": "Preferred Installation Date"
+      },
+      "phone": {
+        "label": "Contact Phone",
+        "placeholder": "+966 50 123 4567"
+      },
+      "notes": {
+        "label": "Additional Notes (Optional)",
+        "placeholder": "Any specific requirements, questions, or preferences..."
+      },
+      "propertyDetails": {
+        "title": "Property Details",
+        "propertyType": "Property Type",
+        "roofType": "Roof Type",
+        "roofOrientation": "Roof Orientation",
+        "shadingIssues": "Property has shading issues (trees, buildings, etc.)",
+        "propertyTypes": {
+          "villa": "Villa",
+          "apartment": "Apartment",
+          "townhouse": "Townhouse",
+          "commercial": "Commercial"
+        },
+        "roofTypes": {
+          "flat": "Flat Roof",
+          "sloped": "Sloped Roof",
+          "mixed": "Mixed"
+        },
+        "roofOrientations": {
+          "south": "South",
+          "southwest": "Southwest",
+          "southeast": "Southeast",
+          "east": "East",
+          "west": "West",
+          "mixed": "Multiple Directions"
+        }
+      },
+      "success": {
+        "title": "Quote Request Submitted!",
+        "message": "Your quote request has been sent to verified contractors in your area. You'll receive quotes within 24-48 hours."
+      },
+      "errors": {
+        "systemSizeRange": "System size must be between 1-50 kWp",
+        "locationRequired": "Installation location is required",
+        "serviceAreaRequired": "Please select a service area",
+        "dateRequired": "Preferred installation date is required",
+        "dateInFuture": "Installation date must be at least tomorrow",
+        "phoneRequired": "Contact phone number is required",
+        "phoneTooLong": "Phone number too long",
+        "phoneInvalid": "Please enter a valid Saudi phone number",
+        "submitFailed": "Failed to submit quote request. Please try again."
+      },
+      "steps": {
+        "basicInfo": "Basic Information",
+        "basicInfoDesc": "Tell us about your property and system requirements",
+        "contractorSelection": "Select Contractors",
+        "contractorSelectionDesc": "Choose exactly 3 contractors from your area for property inspection and quotes",
+        "finalSubmission": "Final Submission",
+        "finalSubmissionDesc": "Review your selections and complete your quote request"
+      }
+    },
+    "steps": {
+      "basicInfo": "Basic Information",
+      "basicInfoDesc": "Tell us about your property and system requirements",
+      "contractorSelection": "Select Contractors", 
+      "contractorSelectionDesc": "Choose exactly 3 contractors from your area for property inspection and quotes",
+      "finalSubmission": "Final Submission",
+      "finalSubmissionDesc": "Review your selections and complete your quote request"
+    },
+    "title": "Solar Quotes",
+    "subtitle": "Request quotes from verified contractors and compare offers for your solar installation",
+    "tabs": {
+      "myRequests": "My Requests",
+      "newRequest": "New Request"
+    },
+    "myRequests": {
+      "title": "Your Quote Requests",
+      "subtitle": "Track your quote requests and view received quotes",
+      "empty": {
+        "title": "No quote requests yet",
+        "message": "Get started by requesting quotes from certified contractors in your area. It's free and takes just a few minutes."
+      }
+    },
+    "actions": {
+      "newRequest": "New Request",
+      "createFirst": "Create First Request",
+      "viewQuotes": "View Quotes",
+      "editRequest": "Edit Request"
+    },
+    "status": {
+      "title": "Status",
+      "pending": "Pending",
+      "quotesReceived": "Quotes Received",
+      "quoteSelected": "Quote Selected",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "system": "Solar System",
+    "solarSystem": "Solar System",
+    "requestId": "Request ID",
+    "propertyDetails": "Property Details",
+    "location": "Location",
+    "contactPhone": "Contact Phone",
+    "propertyType": "Property Type",
+    "roofType": "Roof Type",
+    "roofOrientation": "Roof Orientation",
+    "shadingIssues": "Shading Issues",
+    "installationSchedule": "Installation Schedule",
+    "inspectionSchedules": "Inspection Schedules",
+    "contractor": "Contractor",
+    "selectedQuote": "Selected Quote",
+    "selectedOn": "Selected on",
+    "estimatedCost": "Estimated Cost",
+    "preferredDate": "Preferred Date",
+    "notSpecified": "Not specified",
+    "quotesReceivedCount": "quotes received",
+    "quotes": "quotes",
+    "requests": "requests",
+    "submittedOn": "Submitted on",
+    "selectedContractors": "Selected Contractors",
+    "contractor": "Contractor",
+    "solarCompany": "Solar Company",
+    "receivedQuotes": "Received Quotes",
+    "noQuotes": {
+      "title": "No quotes available",
+      "message": "Contractors have not submitted quotes yet. Please check back later."
+    },
+    "installationTimeline": "Installation Timeline",
+    "systemCapacity": "System Capacity",
+    "panels": "Solar Panels",
+    "inverter": "Inverter",
+    "warrantyTerms": "Warranty Terms",
+    "equipment": "Equipment",
+    "performance": "Performance",
+    "installation": "Installation",
+    "years": "years",
+    "days": "days",
+    "status": {
+      "title": "Status",
+      "submitted": "Quote Submitted",
+      "pending": "Pending",
+      "assigned": "Assigned",
+      "accepted": "Accepted",
+      "quotesReceived": "Quotes Received",
+      "approved": "Approved",
+      "pendingReview": "Pending Review"
+    },
+    "actions": {
+      "newRequest": "New Request",
+      "viewQuotes": "View Quotes", 
+      "editRequest": "Edit Request",
+      "selectQuote": "Select Quote",
+      "viewDetails": "View Details"
+    },
+    "detailedQuotation": "Detailed Quotation",
+    "readyForSelection": "Ready for selection",
+    "underAdminReview": "Under admin review",
+    "includingVAT": "Including VAT",
+    "excludingVAT": "Excluding VAT",
+    "installationTime": "Installation Time",
+    "itemizedBreakdown": "Itemized Breakdown",
+    "vat": "VAT",
+    "totalAmount": "Total Amount",
+    "systemSpecs": "System Specifications",
+    "warranty": "Warranty",
+    "providerInfo": "Provider Information",
+    "quoteValidUntil": "Quote Valid Until",
+    "selectThisQuote": "Select This Quote",
+    "totalPrice": "Total Price",
+    "subtotal": "Subtotal",
+    "storageCapacity": "Storage Capacity",
+    "monthlyProduction": "Monthly Production",
+    "paymentTerms": "Payment Terms",
+    "installationDeadline": "Installation Deadline"
+  },
+  "contractors": {
+    "loading": "Loading contractors...",
+    "loadError": "Failed to load contractors. Please try again.",
+    "reviews": "reviews",
+    "stars": "stars",
+    "years": "years",
+    "experience": "Experience",
+    "projects": "Projects",
+    "serviceAreas": "Service Areas",
+    "select": "Select",
+    "selected": "Selected",
+    "schedule": "Schedule",
+    "scheduled": "Scheduled",
+    "filters": "Filters",
+    "verification": {
+      "verified": "Verified",
+      "partial": "Partial",
+      "unverified": "Unverified"
+    },
+    "filterOptions": {
+      "minRating": "Minimum Rating",
+      "anyRating": "Any Rating",
+      "maxDistance": "Max Distance"
+    },
+    "selection": {
+      "title": "Select Your Contractors",
+      "subtitle": "Choose exactly 3 contractors from your area for property inspection and quotes",
+      "selected": "contractors selected",
+      "selectExactly": "You must select exactly 3 contractors to proceed",
+      "proceedToQuote": "Proceed to Quote Request",
+      "noContractors": "No contractors found in your area",
+      "noContractorsHint": "Try adjusting your filters or selecting a different service area",
+      "penaltyWarning": {
+        "title": "Important: Penalty Agreement",
+        "message": "By proceeding, you agree that if you don't continue with any contractor after inspections, a penalty fee will apply (50% will be paid to contractors as compensation)."
+      }
+    },
+    "scheduling": {
+      "title": "Schedule Inspection",
+      "reschedule": "Reschedule Inspection",
+      "currentSchedule": "Current Schedule",
+      "selectDate": "Select Inspection Date",
+      "selectTime": "Select Preferred Time",
+      "confirm": "Schedule Inspection"
     }
   }
 }

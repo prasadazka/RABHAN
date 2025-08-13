@@ -1,4 +1,5 @@
 import { api } from './api.service';
+import { config } from '../config/environment';
 
 export interface ContractorProfile {
   id: string;
@@ -79,14 +80,13 @@ export interface ContractorDashboardStats {
 }
 
 class ContractorService {
-  private baseURL = process.env.REACT_APP_CONTRACTOR_SERVICE_URL || 'http://localhost:3004/api/contractors';
 
   /**
    * Register a new contractor
    */
   async registerContractor(data: ContractorRegistrationData): Promise<ContractorProfile> {
     try {
-      const response = await api.post(`${this.baseURL}/register`, data);
+      const response = await api.post('/register', data);
       return response.data.data;
     } catch (error: any) {
       console.error('Error registering contractor:', error);
@@ -100,7 +100,7 @@ class ContractorService {
   async getProfile(): Promise<{ success: boolean; profile?: ContractorProfile; error?: string }> {
     try {
       console.log('📥 Loading contractor profile...');
-      const response = await api.get(`${this.baseURL}/profile`);
+      const response = await api.get('/profile');
       
       console.log('✅ Contractor profile loaded successfully:', response.data);
       
@@ -132,7 +132,7 @@ class ContractorService {
    */
   async getDashboardStats(): Promise<ContractorDashboardStats> {
     try {
-      const response = await api.get(`${this.baseURL}/dashboard/stats`);
+      const response = await api.get('/dashboard/stats');
       return response.data.data;
     } catch (error: any) {
       console.error('Error getting dashboard stats:', error);
@@ -163,7 +163,7 @@ class ContractorService {
         params.service_categories = params.service_categories.join(',');
       }
 
-      const response = await api.get(`${this.baseURL}/search`, { params });
+      const response = await api.get('/search', { params });
       return response.data.data;
     } catch (error: any) {
       console.error('Error searching contractors:', error);
@@ -176,7 +176,7 @@ class ContractorService {
    */
   async getContractorById(id: string): Promise<ContractorProfile> {
     try {
-      const response = await api.get(`${this.baseURL}/${id}`);
+      const response = await api.get(`/${id}`);
       return response.data.data;
     } catch (error: any) {
       console.error('Error getting contractor by ID:', error);
@@ -199,7 +199,7 @@ class ContractorService {
       
       // Use appropriate endpoint
       const endpoint = isPreferencesUpdate ? '/preferences' : '/profile';
-      const response = await api.put(`${this.baseURL}${endpoint}`, profileData);
+      const response = await api.put(`${endpoint}`, profileData);
       
       console.log('✅ Successfully updated contractor profile:', response.data);
       
@@ -218,7 +218,7 @@ class ContractorService {
         try {
           // The backend should handle lazy creation automatically
           // Retry the same request - backend will create profile if needed
-          const retryResponse = await api.put(`${this.baseURL}/profile`, profileData);
+          const retryResponse = await api.put('/profile', profileData);
           
           console.log('✅ Successfully created and updated contractor profile:', retryResponse.data);
           
@@ -250,7 +250,7 @@ class ContractorService {
     try {
       console.log('💾 Updating contractor profile with data:', profileData);
       
-      const response = await api.put(`${this.baseURL}/profile`, profileData);
+      const response = await api.put('/profile', profileData);
       
       console.log('✅ Successfully updated contractor profile:', response.data);
       
@@ -354,7 +354,7 @@ class ContractorService {
   async getVerificationStatus(contractorId: string): Promise<'not_verified' | 'pending' | 'verified' | 'rejected'> {
     try {
       console.log('🔍 Getting contractor verification status for:', contractorId);
-      const response = await api.get(`${this.baseURL}/verification/status/${contractorId}`);
+      const response = await api.get(`/verification/status/${contractorId}`);
       
       if (response.data && response.data.data) {
         const status = response.data.data.status || 'not_verified';
@@ -429,7 +429,7 @@ class ContractorService {
    */
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     try {
-      const response = await api.get(`${this.baseURL}/health`);
+      const response = await api.get('/health');
       return response.data;
     } catch (error: any) {
       console.error('Error checking contractor service health:', error);

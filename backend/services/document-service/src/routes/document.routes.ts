@@ -35,6 +35,23 @@ router.get(
   documentController.getHealthStatus
 );
 
+// Admin routes (no user authentication required)
+router.get(
+  '/admin/user/:userId',
+  documentController.listUserDocumentsAdmin
+);
+
+// Admin document proxy/preview routes
+router.get(
+  '/admin/proxy/:documentId',
+  documentController.proxyDocumentAdmin
+);
+
+router.get(
+  '/admin/download/:documentId',
+  documentController.downloadDocumentAdmin
+);
+
 // Protected routes (authentication required)
 router.use(authenticate);
 

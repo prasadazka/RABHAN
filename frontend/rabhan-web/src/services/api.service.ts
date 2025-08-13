@@ -26,13 +26,14 @@ class ApiService {
   private userClient: AxiosInstance;
   private documentClient: AxiosInstance;
   private contractorClient: AxiosInstance;
+  private quoteClient: AxiosInstance;
   private accessToken: string | null = null;
 
   constructor() {
     this.accessToken = localStorage.getItem('rabhan_access_token');
     
     this.authClient = axios.create({
-      baseURL: config.environment === 'development' ? 'http://127.0.0.1:3001/api' : '/api/auth',
+      baseURL: config.authServiceUrl,
       timeout: 10000,
       withCredentials: true,
       headers: {
@@ -41,7 +42,7 @@ class ApiService {
     });
 
     this.userClient = axios.create({
-      baseURL: config.environment === 'development' ? 'http://127.0.0.1:3002' : '/api/users',
+      baseURL: config.userApiUrl,
       timeout: 10000,
       withCredentials: true,
       headers: {
@@ -51,7 +52,7 @@ class ApiService {
 
     // Document Service client
     this.documentClient = axios.create({
-      baseURL: config.environment === 'development' ? 'http://127.0.0.1:3003' : '/api/documents',
+      baseURL: config.documentServiceUrl,
       timeout: 15000, // Longer timeout for file uploads
       withCredentials: true, // Include HttpOnly cookies
       headers: {
@@ -61,9 +62,19 @@ class ApiService {
 
     // Contractor Service client
     this.contractorClient = axios.create({
-      baseURL: config.environment === 'development' ? 'http://127.0.0.1:3004' : '/api/contractors',
+      baseURL: config.contractorApiUrl,
       timeout: 10000,
       withCredentials: true, // Include HttpOnly cookies
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Quote Service client
+    this.quoteClient = axios.create({
+      baseURL: config.quoteServiceUrl,
+      timeout: 15000,
+      withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -74,7 +85,7 @@ class ApiService {
 
   private setupInterceptors(): void {
     // Request interceptors for all clients
-    [this.authClient, this.userClient, this.documentClient, this.contractorClient].forEach(client => {
+    [this.authClient, this.userClient, this.documentClient, this.contractorClient, this.quoteClient].forEach(client => {
       client.interceptors.request.use(
         async (config) => {
           // Add request ID for tracking
@@ -275,7 +286,7 @@ class ApiService {
         role?: string;
         user_type?: string;
       }): Promise<ApiResponse> => {
-        const response = await this.authClient.post('/auth/register', {
+        const response = await this.authClient.post('/register', {
           ...userData,
           role: userData.role || 'USER'
         });
@@ -287,37 +298,37 @@ class ApiService {
         password: string;
         userType?: 'USER' | 'CONTRACTOR';
       }): Promise<ApiResponse> => {
-        const response = await this.authClient.post('/auth/login', credentials);
+        const response = await this.authClient.post('/login', credentials);
         return response.data;
       },
 
       logout: async (): Promise<ApiResponse> => {
-        const response = await this.authClient.post('/auth/logout');
+        const response = await this.authClient.post('/logout');
         return response.data;
       },
 
       sendPhoneOTP: async (phone: string): Promise<ApiResponse> => {
-        const response = await this.authClient.post('/auth/phone/send-otp', { phoneNumber: phone });
+        const response = await this.authClient.post('/phone/send-otp', { phoneNumber: phone });
         return response.data;
       },
 
       verifyPhoneOTP: async (phone: string, otp: string): Promise<ApiResponse> => {
-        const response = await this.authClient.post('/auth/phone/verify-otp', { phoneNumber: phone, otp });
+        const response = await this.authClient.post('/phone/verify-otp', { phoneNumber: phone, otp });
         return response.data;
       },
 
       sendEmailVerification: async (): Promise<ApiResponse> => {
-        const response = await this.authClient.post('/auth/email/send-verification');
+        const response = await this.authClient.post('/email/send-verification');
         return response.data;
       },
 
       verifyEmail: async (token: string): Promise<ApiResponse> => {
-        const response = await this.authClient.post('/auth/email/verify', { token });
+        const response = await this.authClient.post('/email/verify', { token });
         return response.data;
       },
 
       getCurrentUser: async (): Promise<ApiResponse> => {
-        const response = await this.authClient.get('/auth/profile');
+        const response = await this.authClient.get('/profile');
         return response.data;
       },
 
@@ -331,12 +342,12 @@ class ApiService {
         vat_number?: string;
         business_type?: string;
       }): Promise<ApiResponse> => {
-        const response = await this.authClient.put('/auth/profile', userData);
+        const response = await this.authClient.put('/profile', userData);
         return response.data;
       },
 
       refreshSession: async (): Promise<ApiResponse> => {
-        const response = await this.authClient.post('/auth/refresh');
+        const response = await this.authClient.post('/refresh');
         return response.data;
       },
 
@@ -351,7 +362,7 @@ class ApiService {
         vatNumber?: string;
         userType?: string;
       }): Promise<ApiResponse> => {
-        const response = await this.authClient.post('/auth/contractor/register', {
+        const response = await this.authClient.post('/contractor/register', {
           ...contractorData,
           role: 'CONTRACTOR'
         });
@@ -385,7 +396,7 @@ class ApiService {
         smsNotifications?: boolean;
         marketingConsent?: boolean;
       }): Promise<ApiResponse> => {
-        const response = await this.userClient.post('/api/users/profiles', profileData);
+        const response = await this.userClient.post('/profiles', profileData);
         return response.data;
       },
 
@@ -411,42 +422,42 @@ class ApiService {
         smsNotifications?: boolean;
         marketingConsent?: boolean;
       }): Promise<ApiResponse> => {
-        const response = await this.userClient.post('/api/users/profiles/register', profileData);
+        const response = await this.userClient.post('/profiles/register', profileData);
         return response.data;
       },
 
       getProfile: async (userId?: string): Promise<ApiResponse> => {
-        const endpoint = userId ? `/api/users/profiles/${userId}` : '/api/users/profiles/me';
+        const endpoint = userId ? `/profiles/${userId}` : '/profiles/me';
         const response = await this.userClient.get(endpoint);
         return response.data;
       },
 
       updateProfile: async (userId?: string, updates?: any): Promise<ApiResponse> => {
-        const endpoint = userId ? `/api/users/profiles/${userId}` : '/api/users/profiles/me';
+        const endpoint = userId ? `/profiles/${userId}` : '/profiles/me';
         const response = await this.userClient.put(endpoint, updates);
         return response.data;
       },
 
       checkBNPLEligibility: async (userId?: string): Promise<ApiResponse> => {
         const endpoint = userId 
-          ? `/api/users/profiles/${userId}/bnpl-eligibility`
-          : '/api/users/profiles/me/bnpl-eligibility';
+          ? `/profiles/${userId}/bnpl-eligibility`
+          : '/profiles/me/bnpl-eligibility';
         const response = await this.userClient.get(endpoint);
         return response.data;
       },
 
       getDocuments: async (userId?: string): Promise<ApiResponse> => {
         const endpoint = userId 
-          ? `/api/users/profiles/${userId}/documents`
-          : '/api/users/profiles/me/documents';
+          ? `/profiles/${userId}/documents`
+          : '/profiles/me/documents';
         const response = await this.userClient.get(endpoint);
         return response.data;
       },
 
       getUserDocuments: async (userId?: string): Promise<ApiResponse> => {
         const endpoint = userId 
-          ? `/api/users/profiles/${userId}/documents`
-          : '/api/users/profiles/me/documents';
+          ? `/profiles/${userId}/documents`
+          : '/profiles/me/documents';
         const response = await this.userClient.get(endpoint);
         return response.data;
       }
@@ -494,7 +505,7 @@ class ApiService {
   public get health() {
     return {
       checkAuthService: async (): Promise<ApiResponse> => {
-        const response = await this.authClient.get('/auth/health');
+        const response = await this.authClient.get('/health');
         return response.data;
       },
 
@@ -543,6 +554,10 @@ class ApiService {
 
   public getContractorServiceInstance(): AxiosInstance {
     return this.contractorClient;
+  }
+
+  public getQuoteServiceInstance(): AxiosInstance {
+    return this.quoteClient;
   }
 }
 

@@ -139,10 +139,13 @@ class DocumentService {
 
   // Get authorization headers
   private getAuthHeaders() {
-    return {
-      'Authorization': `Bearer ${this.authToken}`,
+    const headers = {
+      'Authorization': `Bearer ${this.authToken || 'NO_TOKEN'}`,
       'Content-Type': 'application/json',
     };
+    console.log('🔑 Document service auth headers:', headers);
+    console.log('🔑 Document service authToken:', this.authToken?.substring(0, 20) + '...');
+    return headers;
   }
 
   // Get multipart headers for file upload
@@ -217,6 +220,11 @@ class DocumentService {
   // Get list of user documents
   async getDocuments(filters?: DocumentFilters): Promise<DocumentListResponse> {
     try {
+      console.log('📋 DocumentService.getDocuments called');
+      console.log('🔑 Auth token present:', !!this.authToken);
+      console.log('🔗 Base URL:', this.baseURL);
+      console.log('📋 Auth headers:', this.getAuthHeaders());
+      
       const params = new URLSearchParams();
       
       // userId is now automatically extracted from JWT token in backend
@@ -229,14 +237,22 @@ class DocumentService {
         });
       }
 
+      console.log('📋 Final URL:', `${this.baseURL}/?${params.toString()}`);
+      
       const response: AxiosResponse<DocumentListResponse> = await axios.get(
         `${this.baseURL}/?${params.toString()}`,
         { headers: this.getAuthHeaders() }
       );
 
+      console.log('✅ Documents response:', response.data);
+      console.log('✅ Documents count:', response.data.documents?.length || 0);
+      
       return response.data;
     } catch (error: any) {
-      console.error('Failed to fetch documents:', error);
+      console.error('❌ Failed to fetch documents:', error);
+      console.error('❌ Error response data:', error.response?.data);
+      console.error('❌ Error response status:', error.response?.status);
+      console.error('❌ Error response headers:', error.response?.headers);
       throw new Error(error.response?.data?.message || 'Failed to fetch documents');
     }
   }

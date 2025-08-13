@@ -14,9 +14,19 @@ import { logger, logAudit, logPerformance } from '../utils/logger';
 
 export class UserModel {
   private pool: Pool;
+  private authPool: Pool;
 
   constructor() {
     this.pool = db.getPool();
+    // Create connection to Auth Service database for combined queries
+    this.authPool = new Pool({
+      host: process.env.DATABASE_HOST || 'localhost',
+      port: parseInt(process.env.DATABASE_PORT || '5432', 10),
+      database: 'rabhan_auth', // Auth service database
+      user: process.env.DATABASE_USER || 'postgres', 
+      password: process.env.DATABASE_PASSWORD || '12345',
+      ssl: false
+    });
   }
 
   // Create user profile
@@ -449,6 +459,432 @@ export class UserModel {
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
+  }
+
+  // Admin method to get all users for dashboard (combined auth + profile data)
+  async getAllUsersForAdmin(options: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }): Promise<{
+    users: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }> {
+    const startTime = process.hrtime.bigint();
+    
+    try {
+      logger.info('🔍 Getting combined user data from both auth and profile databases');
+      
+      const { page = 1, limit = 50, status } = options;
+      const offset = (page - 1) * limit;
+
+      // First, get user profiles with pagination
+      let profileWhereClause = '';
+      let profileQueryParams: any[] = [limit, offset];
+      let profileCountParams: any[] = [];
+
+      if (status && status !== 'all') {
+        profileWhereClause = 'WHERE verification_status = $3';
+        profileQueryParams.push(status);
+        profileCountParams.push(status);
+      }
+
+      // Get total count from profiles
+      const countQuery = `
+        SELECT COUNT(*) as total 
+        FROM user_profiles 
+        ${profileWhereClause}
+      `;
+      
+      const countResult = await this.pool.query(countQuery, profileCountParams);
+      const total = parseInt(countResult.rows[0].total);
+
+      // Get user profiles with pagination
+      const profileQuery = `
+        SELECT 
+          id,
+          auth_user_id,
+          region,
+          city,
+          district,
+          street_address,
+          postal_code,
+          property_type,
+          property_ownership,
+          roof_size,
+          electricity_consumption,
+          electricity_meter_number,
+          preferred_language,
+          employment_status,
+          employer_name,
+          job_title,
+          monthly_income,
+          profile_completed,
+          profile_completion_percentage,
+          verification_status,
+          bnpl_max_amount,
+          bnpl_risk_score,
+          created_at,
+          updated_at
+        FROM user_profiles 
+        ${profileWhereClause}
+        ORDER BY created_at DESC 
+        LIMIT $1 OFFSET $2
+      `;
+
+      const profileResult = await this.pool.query(profileQuery, profileQueryParams);
+      const profiles = profileResult.rows;
+
+      logger.info(`✅ Retrieved ${profiles.length} profiles from user database`);
+
+      // Get auth user IDs for fetching auth data
+      const authUserIds = profiles
+        .map(p => p.auth_user_id)
+        .filter(id => id) // Remove null values
+        .map(id => `'${id}'`)
+        .join(',');
+
+      let authUsers: any[] = [];
+      
+      if (authUserIds) {
+        // Get corresponding auth data
+        const authQuery = `
+          SELECT 
+            id,
+            email,
+            phone,
+            first_name,
+            last_name,
+            national_id,
+            status,
+            role,
+            user_type,
+            bnpl_eligible,
+            email_verified,
+            phone_verified,
+            sama_verified,
+            created_at as auth_created_at,
+            last_login_at
+          FROM users 
+          WHERE id IN (${authUserIds})
+        `;
+
+        const authResult = await this.authPool.query(authQuery);
+        authUsers = authResult.rows;
+        
+        logger.info(`✅ Retrieved ${authUsers.length} auth records from auth database`);
+      }
+
+      // Create a map for quick auth user lookup
+      const authUserMap = new Map();
+      authUsers.forEach(user => {
+        authUserMap.set(user.id, user);
+      });
+
+      // Combine profile and auth data
+      const combinedUsers = profiles.map(profile => {
+        const authUser = authUserMap.get(profile.auth_user_id);
+        
+        return {
+          ...profile,
+          // Auth data (override profile fields with auth data when available)
+          email: authUser?.email || 'No email',
+          phone: authUser?.phone || 'Not provided',
+          first_name: authUser?.first_name || null,
+          last_name: authUser?.last_name || null,
+          national_id: authUser?.national_id || null,
+          user_status: authUser?.status || 'UNKNOWN',
+          user_role: authUser?.role || 'USER',
+          user_type: authUser?.user_type || 'HOMEOWNER',
+          auth_bnpl_eligible: authUser?.bnpl_eligible || false,
+          email_verified: authUser?.email_verified || false,
+          phone_verified: authUser?.phone_verified || false,
+          sama_verified: authUser?.sama_verified || false,
+          auth_created_at: authUser?.auth_created_at || profile.created_at,
+          last_login_at: authUser?.last_login_at || null
+        };
+      });
+
+      // Calculate pagination metadata
+      const totalPages = Math.ceil(total / limit);
+
+      logPerformance('getAllUsersForAdmin', startTime, {
+        totalUsers: combinedUsers.length,
+        page,
+        limit,
+        status,
+        authRecordsFound: authUsers.length,
+        profileRecordsFound: profiles.length
+      });
+
+      logAudit('admin_users_list_accessed', {
+        page,
+        limit,
+        status,
+        totalResults: combinedUsers.length,
+        combinedData: true
+      });
+
+      logger.info('✅ Successfully combined auth and profile data for admin dashboard');
+
+      return {
+        users: combinedUsers,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages
+        }
+      };
+    } catch (error) {
+      logger.error('❌ Error getting combined user data for admin', {
+        error: error.message,
+        stack: error.stack,
+        options
+      });
+      throw error;
+    }
+  }
+
+  // Admin method to get user KPIs and analytics
+  async getUserAnalytics(): Promise<{
+    totalUsers: number;
+    userGrowth: {
+      thisMonth: number;
+      lastMonth: number;
+      growthRate: number;
+    };
+    profileCompletion: {
+      completed: number;
+      partial: number;
+      empty: number;
+      averageCompletion: number;
+    };
+    verification: {
+      verified: number;
+      pending: number;
+      rejected: number;
+      notStarted: number;
+    };
+    bnplEligibility: {
+      eligible: number;
+      notEligible: number;
+      totalAmount: number;
+      averageAmount: number;
+    };
+    geographical: {
+      topRegions: Array<{ region: string; count: number; percentage: number }>;
+      topCities: Array<{ city: string; count: number; percentage: number }>;
+    };
+    propertyTypes: Array<{ type: string; count: number; percentage: number }>;
+    electricityConsumption: Array<{ range: string; count: number; percentage: number }>;
+    userActivity: {
+      activeUsers: number;
+      newUsersLast7Days: number;
+      newUsersLast30Days: number;
+    };
+    authVerification: {
+      emailVerified: number;
+      phoneVerified: number;
+      samaVerified: number;
+      unverified: number;
+    };
+  }> {
+    const startTime = process.hrtime.bigint();
+    
+    try {
+      logger.info('📊 Generating comprehensive user analytics and KPIs');
+
+      // Get all users with combined data (no pagination for analytics)
+      const allUsersResult = await this.getAllUsersForAdmin({ limit: 10000 });
+      const users = allUsersResult.users;
+      const totalUsers = users.length;
+
+      logger.info(`📈 Analyzing ${totalUsers} users for KPI generation`);
+
+      // Calculate date ranges
+      const now = new Date();
+      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // User Growth Analysis
+      const thisMonthUsers = users.filter(u => new Date(u.registrationDate) >= thisMonthStart).length;
+      const lastMonthUsers = users.filter(u => {
+        const regDate = new Date(u.registrationDate);
+        return regDate >= lastMonthStart && regDate <= lastMonthEnd;
+      }).length;
+      
+      const growthRate = lastMonthUsers > 0 ? ((thisMonthUsers - lastMonthUsers) / lastMonthUsers) * 100 : 0;
+
+      // Profile Completion Analysis
+      const completedProfiles = users.filter(u => u.profileCompleted).length;
+      const partialProfiles = users.filter(u => !u.profileCompleted && u.profileCompletionPercentage > 0).length;
+      const emptyProfiles = users.filter(u => u.profileCompletionPercentage === 0).length;
+      const totalCompletion = users.reduce((sum, u) => sum + (u.profileCompletionPercentage || 0), 0);
+      const averageCompletion = totalUsers > 0 ? totalCompletion / totalUsers : 0;
+
+      // Verification Status Analysis
+      const verifiedUsers = users.filter(u => u.kycStatus === 'verified' || u.kycStatus === 'approved').length;
+      const pendingUsers = users.filter(u => u.kycStatus === 'pending' || u.kycStatus === 'under_review').length;
+      const rejectedUsers = users.filter(u => u.kycStatus === 'rejected').length;
+      const notStartedUsers = users.filter(u => u.kycStatus === 'not_verified' || !u.kycStatus).length;
+
+      // BNPL Eligibility Analysis
+      const bnplEligibleUsers = users.filter(u => u.bnplEligible).length;
+      const bnplNotEligible = totalUsers - bnplEligibleUsers;
+      const totalBnplAmount = users.reduce((sum, u) => sum + parseFloat(u.bnplMaxAmount || '0'), 0);
+      const averageBnplAmount = bnplEligibleUsers > 0 ? totalBnplAmount / bnplEligibleUsers : 0;
+
+      // Geographical Analysis
+      const regionCounts = new Map<string, number>();
+      const cityCounts = new Map<string, number>();
+      
+      users.forEach(user => {
+        const region = user.region || 'Not specified';
+        const city = user.city || 'Not specified';
+        regionCounts.set(region, (regionCounts.get(region) || 0) + 1);
+        cityCounts.set(city, (cityCounts.get(city) || 0) + 1);
+      });
+
+      const topRegions = Array.from(regionCounts.entries())
+        .map(([region, count]) => ({ 
+          region, 
+          count, 
+          percentage: (count / totalUsers) * 100 
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+      const topCities = Array.from(cityCounts.entries())
+        .map(([city, count]) => ({ 
+          city, 
+          count, 
+          percentage: (count / totalUsers) * 100 
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+      // Property Types Analysis
+      const propertyTypeCounts = new Map<string, number>();
+      users.forEach(user => {
+        const type = user.propertyType || 'Not specified';
+        propertyTypeCounts.set(type, (propertyTypeCounts.get(type) || 0) + 1);
+      });
+
+      const propertyTypes = Array.from(propertyTypeCounts.entries())
+        .map(([type, count]) => ({ 
+          type, 
+          count, 
+          percentage: (count / totalUsers) * 100 
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      // Electricity Consumption Analysis
+      const consumptionCounts = new Map<string, number>();
+      users.forEach(user => {
+        const consumption = user.electricityConsumption || 'Not specified';
+        consumptionCounts.set(consumption, (consumptionCounts.get(consumption) || 0) + 1);
+      });
+
+      const electricityConsumption = Array.from(consumptionCounts.entries())
+        .map(([range, count]) => ({ 
+          range, 
+          count, 
+          percentage: (count / totalUsers) * 100 
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      // User Activity Analysis
+      const newUsersLast7Days = users.filter(u => new Date(u.registrationDate) >= last7Days).length;
+      const newUsersLast30Days = users.filter(u => new Date(u.registrationDate) >= last30Days).length;
+      const activeUsers = users.filter(u => u.lastLoginAt && new Date(u.lastLoginAt) >= last30Days).length;
+
+      // Auth Verification Analysis
+      const emailVerified = users.filter(u => u.emailVerified).length;
+      const phoneVerified = users.filter(u => u.phoneVerified).length;
+      const samaVerified = users.filter(u => u.samaVerified).length;
+      const unverified = users.filter(u => !u.emailVerified && !u.phoneVerified).length;
+
+      const analytics = {
+        totalUsers,
+        userGrowth: {
+          thisMonth: thisMonthUsers,
+          lastMonth: lastMonthUsers,
+          growthRate: Math.round(growthRate * 100) / 100
+        },
+        profileCompletion: {
+          completed: completedProfiles,
+          partial: partialProfiles,
+          empty: emptyProfiles,
+          averageCompletion: Math.round(averageCompletion * 100) / 100
+        },
+        verification: {
+          verified: verifiedUsers,
+          pending: pendingUsers,
+          rejected: rejectedUsers,
+          notStarted: notStartedUsers
+        },
+        bnplEligibility: {
+          eligible: bnplEligibleUsers,
+          notEligible: bnplNotEligible,
+          totalAmount: Math.round(totalBnplAmount * 100) / 100,
+          averageAmount: Math.round(averageBnplAmount * 100) / 100
+        },
+        geographical: {
+          topRegions,
+          topCities
+        },
+        propertyTypes,
+        electricityConsumption,
+        userActivity: {
+          activeUsers,
+          newUsersLast7Days,
+          newUsersLast30Days
+        },
+        authVerification: {
+          emailVerified,
+          phoneVerified,
+          samaVerified,
+          unverified
+        }
+      };
+
+      logPerformance('getUserAnalytics', startTime, {
+        totalUsers,
+        completedProfiles,
+        bnplEligibleUsers,
+        activeUsers
+      });
+
+      logAudit('admin_user_analytics_accessed', {
+        totalUsers,
+        analyticsGenerated: true
+      });
+
+      logger.info('✅ Successfully generated comprehensive user analytics', {
+        totalUsers,
+        growthRate,
+        averageCompletion,
+        bnplEligibleUsers,
+        activeUsers
+      });
+
+      return analytics;
+    } catch (error) {
+      logger.error('❌ Error generating user analytics', {
+        error: error.message,
+        stack: error.stack
+      });
+      throw error;
+    }
   }
 
   private transformEnumValue(field: string, value: any): any {

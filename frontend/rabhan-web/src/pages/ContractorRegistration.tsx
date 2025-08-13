@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { theme } from '../theme';
 import { apiService } from '../services/api.service';
 import { authService } from '../services/auth.service';
-import DevCredentialHelper from '../components/DevCredentialHelper';
 
 // Custom checkbox styles
 const checkboxStyles = `
@@ -150,38 +149,6 @@ const ContractorRegistration: React.FC<ContractorRegistrationProps> = ({
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
-  // Dev credential helper
-  const handleFillDevCredentials = (devData: any) => {
-    setFormData(prev => ({
-      ...prev,
-      firstName: devData.firstName || '',
-      lastName: devData.lastName || '',
-      email: devData.email || '',
-      password: devData.password || '',
-      confirmPassword: devData.password || '',
-      phone: devData.phone ? devData.phone.replace(/^\+966/, '') : '',
-      companyName: devData.companyName || '',
-      crNumber: devData.crNumber || '',
-      vatNumber: devData.vatNumber || '',
-      userType: 'BUSINESS',
-      agreeToTerms: true
-    }));
-
-    // Auto-verify phone for dev credentials
-    if (devData.phone) {
-      setPhoneVerification({
-        isVerified: true,
-        otpSent: false,
-        otp: '',
-        isVerifying: false,
-        isSendingOTP: false,
-        resendCountdown: 0
-      });
-    }
-
-    // Clear any existing errors
-    setErrors({});
-  };
 
   const validateField = (field: keyof ContractorFormData, value: any): string | null => {
     switch (field) {
@@ -671,11 +638,6 @@ const ContractorRegistration: React.FC<ContractorRegistrationProps> = ({
       fontFamily: theme.typography.fonts.primary,
       direction: isRTL ? 'rtl' : 'ltr'
     }}>
-      {/* Dev Credential Helper */}
-      <DevCredentialHelper
-        formType="contractor"
-        onFillForm={handleFillDevCredentials}
-      />
       <main style={{
         display: 'flex',
         justifyContent: 'center',
