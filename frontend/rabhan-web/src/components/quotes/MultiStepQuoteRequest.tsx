@@ -28,7 +28,6 @@ interface QuoteFormData {
   system_size_kwp: number;
   location_address: string;
   service_area: string;
-  preferred_installation_date: string;
   contact_phone: string;
   notes: string;
   property_details: {
@@ -349,8 +348,27 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
 
+  // Check for solar calculator data on component mount
+  const getSolarCalculatorData = () => {
+    try {
+      const solarData = localStorage.getItem('solar_calculator_result');
+      if (solarData) {
+        const parsed = JSON.parse(solarData);
+        // DON'T clear the data yet - we'll clear it when form is submitted
+        return parsed;
+      }
+    } catch (error) {
+      console.error('Error reading solar calculator data:', error);
+    }
+    return null;
+  };
+
+  const solarCalculatorData = getSolarCalculatorData();
+
+  const initialKwp = initialData?.system_size_kwp || solarCalculatorData?.system_size_kwp || 6;
+
   const [formData, setFormData] = useState<Partial<QuoteFormData>>({
-    system_size_kwp: initialData?.system_size_kwp || 6,
+    system_size_kwp: initialKwp,
     service_area: initialData?.service_area || user.region?.toLowerCase() || 'riyadh',
     location_address: initialData?.location_address || 
       (user.street_address 
@@ -360,6 +378,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showSolarCalculatorNotice, setShowSolarCalculatorNotice] = useState(!!solarCalculatorData);
 
   const serviceAreas = [
     { value: 'riyadh', label: t('quotes.form.serviceArea.options.riyadh', 'Riyadh') },
@@ -392,6 +411,9 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
     e.preventDefault();
     
     if (validateForm()) {
+      // Clear solar calculator data now that we're done with the basic info step
+      localStorage.removeItem('solar_calculator_result');
+      
       onComplete(formData);
     }
   };
@@ -426,6 +448,54 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       padding: '2rem',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
     }}>
+      {/* Solar Calculator Notice */}
+      {showSolarCalculatorNotice && (
+        <div style={{
+          backgroundColor: '#f0fff4',
+          border: '2px solid #10b981',
+          borderRadius: '8px',
+          padding: '1rem',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
+          <div style={{
+            width: '24px',
+            height: '24px',
+            backgroundColor: '#10b981',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}>
+            ✓
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#047857' }}>
+              {t('quotes.form.solarCalculatorNotice', 'Solar Calculator data auto-filled! System size set to {kwp} KWP based on your calculation.').replace('{kwp}', solarCalculatorData?.system_size_kwp || 0)}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowSolarCalculatorNotice(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#047857',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* System Size */}
       <div style={{ marginBottom: '1.5rem' }}>
         <label style={{...labelStyle} as React.CSSProperties}>

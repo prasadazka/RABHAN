@@ -254,7 +254,20 @@ class MarketplaceService {
         throw new Error(response.data.message || response.data.error || 'Request failed');
       }
 
-      return response.data; // Return full response for pagination
+      // Transform API response to match expected frontend format
+      const transformedResponse = {
+        data: response.data.data || [],
+        pagination: {
+          page: response.data.meta?.currentPage || response.data.pagination?.page || 1,
+          limit: response.data.meta?.limit || response.data.pagination?.limit || 20,
+          total: response.data.meta?.total || response.data.pagination?.total || 0,
+          totalPages: response.data.meta?.totalPages || response.data.pagination?.totalPages || 0,
+          hasNext: response.data.meta?.hasNextPage || response.data.pagination?.hasNext || false,
+          hasPrev: response.data.meta?.hasPrevPage || response.data.pagination?.hasPrev || false
+        }
+      };
+      
+      return transformedResponse as T;
     } catch (error: any) {
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);

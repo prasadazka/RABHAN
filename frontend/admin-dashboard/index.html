@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/rabhan-favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RABHAN Admin Dashboard - Saudi Arabia's first SAMA-compliant solar BNPL platform administration interface" />
+    <meta name="keywords" content="rabhan, solar, bnpl, admin, dashboard, saudi arabia, sama, compliant, renewable energy" />
+    <meta name="author" content="RABHAN Development Team" />
+    <meta name="theme-color" content="#3eb2b1" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://admin.rabhan.sa" />
+    <meta property="og:title" content="RABHAN Admin Dashboard" />
+    <meta property="og:description" content="Saudi Arabia's first SAMA-compliant solar BNPL platform administration" />
+    <meta property="og:image" content="/rabhan-og-image.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://admin.rabhan.sa" />
+    <meta property="twitter:title" content="RABHAN Admin Dashboard" />
+    <meta property="twitter:description" content="Saudi Arabia's first SAMA-compliant solar BNPL platform administration" />
+    <meta property="twitter:image" content="/rabhan-og-image.png" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- Preconnect to optimize font loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Load fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <title>RABHAN Admin Dashboard</title>
+    
+    <!-- Security headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data: blob: http://localhost:3007; connect-src 'self' http://localhost:3001 http://localhost:3002 http://localhost:3003 http://localhost:3004 http://localhost:3005 http://localhost:3006 http://localhost:3007 http://localhost:3008 http://localhost:3009 ws://localhost:3010;" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    
+    <!-- Prevent zoom on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  </head>
+  <body>
+    <noscript>
+      <div style="text-align: center; padding: 20px; font-family: Arial, sans-serif;">
+        <h1>JavaScript Required</h1>
+        <p>This application requires JavaScript to run. Please enable JavaScript in your browser.</p>
+        <hr />
+        <h1 dir="rtl">JavaScript مطلوب</h1>
+        <p dir="rtl">يتطلب هذا التطبيق JavaScript للعمل. يرجى تمكين JavaScript في متصفحك.</p>
+      </div>
+    </noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

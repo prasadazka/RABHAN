@@ -127,7 +127,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onItemClick 
 }) => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const currentLanguage = i18n.language;
+  const isRTL = currentLanguage === 'ar';
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -537,7 +538,10 @@ const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Logo */}
         <div style={sidebarStyles.logo}>
-          <div style={sidebarStyles.logoIcon} />
+          <div style={{
+            ...sidebarStyles.logoIcon,
+            backgroundImage: currentLanguage === 'ar' ? 'url(/assets/logo_arabic.jpeg)' : 'url(/rabhan_logo.svg)'
+          }} />
         </div>
 
         {/* Navigation */}

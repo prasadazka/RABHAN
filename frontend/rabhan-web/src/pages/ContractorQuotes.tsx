@@ -94,6 +94,13 @@ const ContractorQuotes: React.FC<ContractorQuotesProps> = ({ user }) => {
   const [showQuotationForm, setShowQuotationForm] = useState(false);
   const [isSubmittingQuotation, setIsSubmittingQuotation] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  
+  // Dynamic pricing configuration state
+  const [pricingConfig, setPricingConfig] = useState({
+    commission_percent: 15,
+    overprice_percent: 10,
+    vat_rate: 15
+  });
   const [quotationData, setQuotationData] = useState({
     contractor_vat_number: '300000000000003',
     installation_deadline: '',
@@ -142,6 +149,33 @@ const ContractorQuotes: React.FC<ContractorQuotesProps> = ({ user }) => {
       }));
     }
   }, [showQuotationForm, selectedRequest]);
+
+  // Load pricing configuration from backend
+  const loadPricingConfig = async () => {
+    try {
+      const response = await fetch(`${config.quoteServiceUrl}/financial/pricing-config`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('rabhan_access_token')}`,
+        },
+      });
+      const data = await response.json();
+      if (data.success && data.data.pricing_config) {
+        const config = data.data.pricing_config;
+        setPricingConfig({
+          commission_percent: config.platform_commission_percent || 15,
+          overprice_percent: config.platform_overprice_percent || 10,
+          vat_rate: config.vat_rate || 15
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load pricing config:', error);
+    }
+  };
+
+  // Load pricing config on component mount
+  useEffect(() => {
+    loadPricingConfig();
+  }, []);
 
   const loadAssignedRequests = async () => {
     setIsLoading(true);
@@ -304,8 +338,8 @@ const ContractorQuotes: React.FC<ContractorQuotesProps> = ({ user }) => {
   // New functions for quotation form
   const calculateLineItemTotals = (item: any) => {
     const totalPrice = item.quantity * item.unit_price;
-    const rabhanCommission = totalPrice * 0.15;
-    const rabhanOverPrice = totalPrice * 0.10;
+    const rabhanCommission = totalPrice * (pricingConfig.commission_percent / 100);
+    const rabhanOverPrice = totalPrice * (pricingConfig.overprice_percent / 100);
     const userPrice = totalPrice + rabhanOverPrice;
     const vendorNetPrice = totalPrice - rabhanCommission;
     
@@ -1584,9 +1618,9 @@ const ContractorQuotes: React.FC<ContractorQuotesProps> = ({ user }) => {
           <div style={{
             backgroundColor: 'white',
             borderRadius: '16px',
-            width: '90%',
-            maxWidth: '1000px',
-            maxHeight: '90vh',
+            width: '95%',
+            maxWidth: '1400px',
+            maxHeight: '95vh',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column'
@@ -1915,100 +1949,112 @@ const ContractorQuotes: React.FC<ContractorQuotesProps> = ({ user }) => {
                     </div>
                   </div>
 
-                  {/* Line Items Table */}
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                  {/* Comprehensive Pricing Transparency Table */}
+                  <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
+                    <table style={{ 
+                      width: '100%', 
+                      borderCollapse: 'collapse', 
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                    }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#f8fafc' }}>
-                          <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600' }}>S/N</th>
-                          <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600' }}>Item</th>
-                          <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600' }}>Description</th>
-                          <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600' }}>Qty</th>
-                          <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600' }}>Unit Price (SAR)</th>
-                          <th style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '600' }}>Total (SAR)</th>
-                          <th style={{ padding: '12px 8px', textAlign: 'center', fontWeight: '600' }}>Action</th>
+                        <tr style={{ backgroundColor: theme.colors.primary[500], color: 'white' }}>
+                          <th style={{ padding: '16px 12px', textAlign: 'center', fontWeight: '700', fontSize: '14px' }}>S/N</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'left', fontWeight: '700', fontSize: '14px' }}>Item</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'left', fontWeight: '700', fontSize: '14px' }}>Description</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'center', fontWeight: '700', fontSize: '14px' }}>Qty</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'right', fontWeight: '700', fontSize: '14px' }}>Unit Price (SAR)</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'right', fontWeight: '700', fontSize: '14px' }}>Total Price (SAR)</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'right', fontWeight: '700', fontSize: '14px', minWidth: '140px' }}>RABHAN Commission ({pricingConfig.commission_percent}%)</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'right', fontWeight: '700', fontSize: '14px', minWidth: '140px' }}>RABHAN Overprice ({pricingConfig.overprice_percent}%)</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'right', fontWeight: '700', fontSize: '14px' }}>User Price (SAR)</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'right', fontWeight: '700', fontSize: '14px' }}>Vendor Net Price (SAR)</th>
+                          <th style={{ padding: '16px 12px', textAlign: 'center', fontWeight: '700', fontSize: '14px' }}>Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         {quotationData.line_items.map((item, index) => {
                           const totals = calculateLineItemTotals(item);
                           return (
-                            <tr key={index} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                              <td style={{ padding: '12px 8px' }}>{item.serial_number}</td>
-                              <td style={{ padding: '12px 8px' }}>
+                            <tr key={index} style={{ 
+                              borderBottom: `1px solid ${theme.colors.borders.light}`,
+                              backgroundColor: index % 2 === 0 ? theme.colors.backgrounds.secondary : 'white'
+                            }}>
+                              <td style={{ padding: '14px 12px', textAlign: 'center', fontWeight: '600' }}>
+                                {item.serial_number}
+                              </td>
+                              <td style={{ padding: '14px 12px' }}>
                                 <input
                                   type="text"
                                   value={item.item_name}
                                   onChange={(e) => updateLineItem(index, 'item_name', e.target.value)}
                                   style={{
                                     width: '120px',
-                                    padding: '8px',
-                                    border: `2px solid ${theme.colors.borders.light}`,
-                                    borderRadius: '6px',
-                                    fontSize: '14px',
+                                    padding: '6px 8px',
+                                    border: `1px solid ${theme.colors.borders.light}`,
+                                    borderRadius: '4px',
+                                    fontSize: '13px',
                                     backgroundColor: 'white',
                                     color: theme.colors.text.primary,
                                     fontFamily: 'inherit',
-                                    outline: 'none',
-                                    transition: 'border-color 0.2s ease'
+                                    outline: 'none'
                                   }}
                                   onFocus={(e) => {
-                                    e.target.style.borderColor = theme.colors.primary[500];
-                                    e.target.style.boxShadow = `0 0 0 2px ${theme.colors.primary[500]}20`;
+                                    e.target.style.borderColor = theme.colors.primary.main;
                                   }}
                                   onBlur={(e) => {
                                     e.target.style.borderColor = theme.colors.borders.light;
-                                    e.target.style.boxShadow = 'none';
                                   }}
                                   placeholder="Solar Panel"
                                 />
                               </td>
-                              <td style={{ padding: '12px 8px' }}>
+                              <td style={{ padding: '14px 12px' }}>
                                 <input
                                   type="text"
                                   value={item.description}
                                   onChange={(e) => updateLineItem(index, 'description', e.target.value)}
                                   style={{
-                                    width: '150px',
-                                    padding: '8px',
-                                    border: `2px solid ${theme.colors.borders.light}`,
-                                    borderRadius: '6px',
-                                    fontSize: '14px',
+                                    width: '140px',
+                                    padding: '6px 8px',
+                                    border: `1px solid ${theme.colors.borders.light}`,
+                                    borderRadius: '4px',
+                                    fontSize: '13px',
                                     backgroundColor: 'white',
                                     color: theme.colors.text.primary,
                                     fontFamily: 'inherit',
-                                    outline: 'none',
-                                    transition: 'border-color 0.2s ease'
+                                    outline: 'none'
                                   }}
                                   onFocus={(e) => {
-                                    e.target.style.borderColor = theme.colors.primary[500];
-                                    e.target.style.boxShadow = `0 0 0 2px ${theme.colors.primary[500]}20`;
+                                    e.target.style.borderColor = theme.colors.primary.main;
                                   }}
                                   onBlur={(e) => {
                                     e.target.style.borderColor = theme.colors.borders.light;
-                                    e.target.style.boxShadow = 'none';
                                   }}
                                   placeholder="450W efficiency"
                                 />
                               </td>
-                              <td style={{ padding: '12px 8px' }}>
+                              <td style={{ padding: '14px 12px', textAlign: 'center' }}>
                                 <input
                                   type="number"
                                   value={item.quantity}
                                   onChange={(e) => updateLineItem(index, 'quantity', parseInt(e.target.value) || 1)}
                                   style={{
                                     width: '60px',
-                                    padding: '6px',
+                                    padding: '8px',
                                     border: `1px solid ${theme.colors.borders.light}`,
                                     borderRadius: '4px',
                                     fontSize: '14px',
                                     backgroundColor: 'white',
-                                    color: theme.colors.text.primary
+                                    color: theme.colors.text.primary,
+                                    textAlign: 'center'
                                   }}
                                   min="1"
                                 />
                               </td>
-                              <td style={{ padding: '12px 8px' }}>
+                              <td style={{ padding: '14px 12px', textAlign: 'right' }}>
                                 <input
                                   type="number"
                                   step="0.01"
@@ -2016,20 +2062,57 @@ const ContractorQuotes: React.FC<ContractorQuotesProps> = ({ user }) => {
                                   onChange={(e) => updateLineItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
                                   style={{
                                     width: '100px',
-                                    padding: '6px',
+                                    padding: '8px 10px',
                                     border: `1px solid ${theme.colors.borders.light}`,
                                     borderRadius: '4px',
                                     fontSize: '14px',
                                     backgroundColor: 'white',
-                                    color: theme.colors.text.primary
+                                    color: theme.colors.text.primary,
+                                    textAlign: 'right'
                                   }}
                                   placeholder="0.00"
                                 />
                               </td>
-                              <td style={{ padding: '12px 8px', fontWeight: '600' }}>
+                              <td style={{ padding: '14px 12px', textAlign: 'right', fontWeight: '700', color: theme.colors.text.primary, fontSize: '14px' }}>
                                 {totals.totalPrice.toFixed(2)}
                               </td>
-                              <td style={{ padding: '12px 8px', textAlign: 'center' }}>
+                              <td style={{ 
+                                padding: '14px 12px', 
+                                textAlign: 'right', 
+                                fontWeight: '600',
+                                color: '#ff8c00',
+                                fontSize: '14px'
+                              }}>
+                                -{totals.rabhanCommission.toFixed(2)}
+                              </td>
+                              <td style={{ 
+                                padding: '14px 12px', 
+                                textAlign: 'right', 
+                                fontWeight: '600',
+                                color: '#ff8c00',
+                                fontSize: '14px'
+                              }}>
+                                +{totals.rabhanOverPrice.toFixed(2)}
+                              </td>
+                              <td style={{ 
+                                padding: '14px 12px', 
+                                textAlign: 'right', 
+                                fontWeight: '700',
+                                color: theme.colors.primary[600],
+                                fontSize: '14px'
+                              }}>
+                                {totals.userPrice.toFixed(2)}
+                              </td>
+                              <td style={{ 
+                                padding: '14px 12px', 
+                                textAlign: 'right', 
+                                fontWeight: '700',
+                                color: theme.colors.primary[600],
+                                fontSize: '14px'
+                              }}>
+                                {totals.vendorNetPrice.toFixed(2)}
+                              </td>
+                              <td style={{ padding: '14px 12px', textAlign: 'center' }}>
                                 {quotationData.line_items.length > 1 && (
                                   <button
                                     onClick={() => removeLineItem(index)}
@@ -2039,7 +2122,7 @@ const ContractorQuotes: React.FC<ContractorQuotesProps> = ({ user }) => {
                                       border: 'none',
                                       padding: '4px 8px',
                                       borderRadius: '4px',
-                                      fontSize: '12px',
+                                      fontSize: '11px',
                                       cursor: 'pointer'
                                     }}
                                   >
@@ -2051,6 +2134,59 @@ const ContractorQuotes: React.FC<ContractorQuotesProps> = ({ user }) => {
                           );
                         })}
                       </tbody>
+                      <tfoot>
+                        {(() => {
+                          const grandTotals = calculateQuotationTotals();
+                          return (
+                            <tr style={{ 
+                              backgroundColor: theme.colors.backgrounds.secondary,
+                              fontWeight: '700',
+                              fontSize: '15px',
+                              borderTop: `2px solid ${theme.colors.primary[500]}`
+                            }}>
+                              <td colSpan={5} style={{ padding: '16px 12px', textAlign: 'right', fontWeight: '700', color: theme.colors.text.primary }}>
+                                TOTALS:
+                              </td>
+                              <td style={{ padding: '16px 12px', textAlign: 'right', fontWeight: '700', color: theme.colors.text.primary }}>
+                                {grandTotals.totalPrice.toFixed(2)}
+                              </td>
+                              <td style={{ 
+                                padding: '16px 12px', 
+                                textAlign: 'right', 
+                                fontWeight: '700',
+                                color: '#ff8c00'
+                              }}>
+                                -{grandTotals.rabhanCommission.toFixed(2)}
+                              </td>
+                              <td style={{ 
+                                padding: '16px 12px', 
+                                textAlign: 'right', 
+                                fontWeight: '700',
+                                color: '#ff8c00'
+                              }}>
+                                +{grandTotals.rabhanOverPrice.toFixed(2)}
+                              </td>
+                              <td style={{ 
+                                padding: '16px 12px', 
+                                textAlign: 'right', 
+                                fontWeight: '700',
+                                color: theme.colors.primary[600]
+                              }}>
+                                {grandTotals.userPrice.toFixed(2)}
+                              </td>
+                              <td style={{ 
+                                padding: '16px 12px', 
+                                textAlign: 'right', 
+                                fontWeight: '700',
+                                color: theme.colors.primary[600]
+                              }}>
+                                {grandTotals.vendorNetPrice.toFixed(2)}
+                              </td>
+                              <td style={{ padding: '16px 12px' }}></td>
+                            </tr>
+                          );
+                        })()}
+                      </tfoot>
                     </table>
                   </div>
 
@@ -2063,7 +2199,7 @@ const ContractorQuotes: React.FC<ContractorQuotesProps> = ({ user }) => {
                   }}>
                     {(() => {
                       const totals = calculateQuotationTotals();
-                      const vatRate = 0.15; // 15% VAT
+                      const vatRate = pricingConfig.vat_rate / 100; // Dynamic VAT from config
                       const finalAmountBeforeVAT = totals.totalPrice - totals.rabhanCommission;
                       const vatAmount = finalAmountBeforeVAT * vatRate;
                       const finalAmountWithVAT = finalAmountBeforeVAT + vatAmount;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import { theme } from '../theme';
 import { QuoteRequestForm } from '../components/quotes/QuoteRequestForm';
 import { MultiStepQuoteRequest } from '../components/quotes/MultiStepQuoteRequest';
@@ -47,7 +48,6 @@ interface QuoteRequestItem {
   system_size_kwp: number;
   location_address: string;
   service_area: string;
-  preferred_installation_date: string;
   contact_phone: string;
   status: 'pending' | 'in_progress' | 'quotes_received' | 'quote_selected' | 'completed' | 'cancelled';
   quotes_count: number;
@@ -76,6 +76,7 @@ interface QuoteRequestItem {
 
 export const Quotes: React.FC<QuotesProps> = ({ user }) => {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const isRTL = i18n.language === 'ar';
   
   const [activeTab, setActiveTab] = useState<'form' | 'requests'>('requests');
@@ -93,8 +94,18 @@ export const Quotes: React.FC<QuotesProps> = ({ user }) => {
 
   // Load user's quote requests
   useEffect(() => {
+    // Check if user came from solar calculator or URL parameters
+    const urlParams = new URLSearchParams(location.search);
+    const showForm = urlParams.get('form') === 'true';
+    const solarData = localStorage.getItem('solar_calculator_result');
+    
+    if (showForm || solarData) {
+      // Switch to form tab when user comes from solar calculator or URL param
+      setActiveTab('form');
+    }
+    
     loadQuoteRequests();
-  }, []);
+  }, [location.search]);
 
   const loadQuoteRequests = async () => {
     setIsLoading(true);
@@ -156,6 +167,8 @@ export const Quotes: React.FC<QuotesProps> = ({ user }) => {
   };
 
   const handleViewQuoteDetail = (quote: any) => {
+    console.log('User quote detail data:', quote);
+    console.log('User quote line_items:', quote.line_items);
     setSelectedQuoteForDetail(quote);
     setShowUserQuoteDetail(true);
   };
@@ -831,6 +844,7 @@ export const Quotes: React.FC<QuotesProps> = ({ user }) => {
                     </div>
 
                     {/* Installation Schedule */}
+                    {selectedRequest.inspection_schedules && Object.keys(selectedRequest.inspection_schedules).length > 0 && (
                     <div style={{
                       backgroundColor: theme.colors.backgrounds.secondary,
                       borderRadius: '12px',
@@ -848,16 +862,6 @@ export const Quotes: React.FC<QuotesProps> = ({ user }) => {
                         <CalendarIcon size={18} />
                         {t('quotes.installationSchedule')}
                       </h3>
-                      <div style={{
-                        padding: '12px 16px',
-                        backgroundColor: 'white',
-                        borderRadius: '8px',
-                        border: `2px solid ${theme.colors.primary[200]}`
-                      }}>
-                        <div style={{ fontSize: '14px', color: theme.colors.text.primary }}>
-                          <strong>{t('quotes.preferredDate')}:</strong> {selectedRequest.preferred_installation_date ? formatDate(selectedRequest.preferred_installation_date) : t('quotes.notSpecified')}
-                        </div>
-                      </div>
                       
                       {selectedRequest.inspection_schedules && Object.keys(selectedRequest.inspection_schedules).length > 0 && (
                         <div style={{ marginTop: '1rem' }}>
@@ -899,6 +903,7 @@ export const Quotes: React.FC<QuotesProps> = ({ user }) => {
                         </div>
                       )}
                     </div>
+                    )}
 
                     {/* Selected Quote (if any) */}
                     {selectedRequest.selected_quote && (
@@ -991,7 +996,7 @@ export const Quotes: React.FC<QuotesProps> = ({ user }) => {
                         }}
                       >
                         <GitCompare size={16} />
-                        {t('userApp.quotes.viewQuotations')}
+                        {t('quotes.actions.viewQuotations')}
                       </button>
                     </div>
 

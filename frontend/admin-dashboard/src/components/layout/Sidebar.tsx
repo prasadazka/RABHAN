@@ -85,7 +85,7 @@ const navigation = [
 export function Sidebar({ onClose }: SidebarProps) {
   const location = useLocation();
   const { hasPermission, logout } = useAuth();
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
 
   // Filter navigation items based on user permissions
   const filteredNavigation = navigation.filter(item => 
@@ -99,8 +99,8 @@ export function Sidebar({ onClose }: SidebarProps) {
         <div className="flex items-center justify-center w-full">
           <div className="flex items-center justify-center">
             <img 
-              src="/rabhan_logo.svg" 
-              alt="RABHAN Logo" 
+              src={i18n.language === 'ar' ? "/assets/logo_arabic.jpeg" : "/rabhan_logo.svg"}
+              alt={i18n.language === 'ar' ? "RABHAN Arabic Logo" : "RABHAN Logo"}
               className="w-16 h-16 object-contain"
               onError={(e) => {
                 // Fallback to Sun icon if logo fails to load

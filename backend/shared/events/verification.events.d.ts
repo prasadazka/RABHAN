@@ -1,7 +1,3 @@
-/**
- * Verification Events System
- * Event-driven architecture for automatic verification status updates
- */
 export interface ProfileCompletionEvent {
     userId: string;
     profileCompleted: boolean;

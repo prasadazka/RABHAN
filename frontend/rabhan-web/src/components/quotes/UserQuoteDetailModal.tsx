@@ -57,44 +57,17 @@ export const UserQuoteDetailModal: React.FC<UserQuoteDetailModalProps> = ({
   const systemCapacity = parseFloat(quote.solar_system_capacity_kwp || request?.system_size_kwp || '0');
   const storageCapacity = parseFloat(quote.storage_capacity_kwh || '0');
 
-  // Create simplified itemized breakdown for users (no commissions shown)
-  const items = [
-    {
-      sn: 1,
-      item: "Solar Panels",
-      description: "450W efficiency monocrystalline",
-      qty: Math.ceil(systemCapacity * 1000 / 450),
-      unitPrice: Math.round(totalUserPrice * 0.28 / Math.ceil(systemCapacity * 1000 / 450)),
-    },
-    {
-      sn: 2,
-      item: "Inverter",
-      description: `Hybrid - ${Math.ceil(systemCapacity)}KW`,
-      qty: 1,
-      unitPrice: Math.round(totalUserPrice * 0.18),
-    },
-    {
-      sn: 3,
-      item: "Batteries",
-      description: `LifePO4 - ${storageCapacity}KWH`,
-      qty: 1,
-      unitPrice: Math.round(totalUserPrice * 0.35),
-    },
-    {
-      sn: 4,
-      item: "Installation",
-      description: "Mounting, wiring & commissioning",
-      qty: 1,
-      unitPrice: Math.round(totalUserPrice * 0.19),
-    }
-  ];
-
-  // Adjust last item to match exact total
-  const calculatedTotal = items.reduce((sum, item) => sum + (item.qty * item.unitPrice), 0);
-  const difference = totalUserPrice - calculatedTotal;
-  if (difference !== 0) {
-    items[items.length - 1].unitPrice += difference;
-  }
+  // Use real contractor line items from database
+  const contractorLineItems = quote.line_items || [];
+  const hasRealLineItems = contractorLineItems && contractorLineItems.length > 0;
+  
+  const items = hasRealLineItems ? contractorLineItems.map((item: any, index: number) => ({
+    sn: index + 1,
+    item: item.item_name || 'Not specified',
+    description: item.description || 'No description',
+    qty: item.units || 1,
+    unitPrice: item.unit_price || 0,
+  })) : [];
 
   return (
     <div 
@@ -307,28 +280,36 @@ export const UserQuoteDetailModal: React.FC<UserQuoteDetailModalProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((item) => {
-                      const totalPrice = item.qty * item.unitPrice;
-                      return (
-                        <tr key={item.sn} style={{ borderBottom: `1px solid ${theme.colors.borders.light}` }}>
-                          <td style={{ padding: '1rem', fontWeight: '500', color: theme.colors.text.primary }}>
-                            {item.item}
-                          </td>
-                          <td style={{ padding: '1rem', color: theme.colors.text.secondary }}>
-                            {item.description}
-                          </td>
-                          <td style={{ padding: '1rem', textAlign: 'center', fontFamily: 'monospace' }}>
-                            {item.qty}
-                          </td>
-                          <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'monospace' }}>
-                            SAR {item.unitPrice.toLocaleString()}
-                          </td>
-                          <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'monospace', fontWeight: '600' }}>
-                            SAR {totalPrice.toLocaleString()}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {hasRealLineItems ? (
+                      items.map((item) => {
+                        const totalPrice = item.qty * item.unitPrice;
+                        return (
+                          <tr key={item.sn} style={{ borderBottom: `1px solid ${theme.colors.borders.light}` }}>
+                            <td style={{ padding: '1rem', fontWeight: '500', color: theme.colors.text.primary }}>
+                              {item.item}
+                            </td>
+                            <td style={{ padding: '1rem', color: theme.colors.text.secondary }}>
+                              {item.description}
+                            </td>
+                            <td style={{ padding: '1rem', textAlign: 'center', fontFamily: 'monospace' }}>
+                              {item.qty}
+                            </td>
+                            <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'monospace' }}>
+                              SAR {item.unitPrice.toLocaleString()}
+                            </td>
+                            <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'monospace', fontWeight: '600' }}>
+                              SAR {totalPrice.toLocaleString()}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: theme.colors.text.secondary }}>
+                          {t('quotes.noDetailedBreakdown')}
+                        </td>
+                      </tr>
+                    )}
                     
                     {/* Subtotal */}
                     <tr style={{ backgroundColor: theme.colors.backgrounds.secondary, borderTop: `2px solid ${theme.colors.borders.medium}` }}>

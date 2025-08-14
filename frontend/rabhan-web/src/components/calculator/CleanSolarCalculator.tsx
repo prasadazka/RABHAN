@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Calculator, Home, Building2, Zap, DollarSign, Calendar, TrendingUp, Banknote, CheckCircle, AlertCircle, Sun, BarChart3, PieChart, Lightbulb, Battery, Coins, Target, Award, Timer } from 'lucide-react';
 import { ClientType, CalculationMode, SolarCalculationInput, SolarCalculationResult } from '../../types/solar.types';
 import { solarService } from '../../services/solar.service';
 import { config } from '../../config/environment';
+import { authService } from '../../services/auth.service';
 
 interface CleanSolarCalculatorProps {
   variant?: 'full' | 'compact' | 'dashboard';
@@ -19,6 +21,7 @@ export const CleanSolarCalculator: React.FC<CleanSolarCalculatorProps> = ({
   className = ''
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   
   // State management for solar calculator
   const [clientType, setClientType] = useState<ClientType>(ClientType.RESIDENTIAL);
@@ -144,6 +147,39 @@ export const CleanSolarCalculator: React.FC<CleanSolarCalculatorProps> = ({
       return !monthlyConsumption || monthlyConsumption.trim() === '';
     } else {
       return !monthlyBill || monthlyBill.trim() === '';
+    }
+  };
+
+  const handleGetQuote = () => {
+    if (!result) return;
+    
+    // Check if user is authenticated
+    const authState = authService.getState();
+    
+    if (authState.isAuthenticated && authState.user) {
+      // User is logged in, redirect to quote form with KWP pre-filled
+      const quoteData = {
+        system_size_kwp: result.solarPowerKWP
+      };
+      
+      // Store the calculator result in localStorage for auto-fill
+      localStorage.setItem('solar_calculator_result', JSON.stringify(quoteData));
+      
+      // Navigate to quotes page with form parameter
+      navigate('/dashboard/quotes?form=true');
+    } else {
+      // User not logged in, store return URL and KWP data
+      const returnData = {
+        returnUrl: '/dashboard/quotes?form=true',
+        system_size_kwp: result.solarPowerKWP,
+        from: 'solar-calculator'
+      };
+      
+      // Store return data in localStorage
+      localStorage.setItem('quote_request_data', JSON.stringify(returnData));
+      
+      // Redirect to login (current page handles login popup)
+      window.location.href = '/?login=true';
     }
   };
 
@@ -571,6 +607,7 @@ export const CleanSolarCalculator: React.FC<CleanSolarCalculatorProps> = ({
               animation: 'fadeInUp 0.8s ease-out 0.8s both'
             }}>
               <button
+                onClick={handleGetQuote}
                 style={{
                   padding: '18px 48px',
                   background: 'linear-gradient(135deg, #3eb2b1 0%, #2d9d9c 100%)',

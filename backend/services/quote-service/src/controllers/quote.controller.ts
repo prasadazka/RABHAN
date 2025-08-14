@@ -162,7 +162,8 @@ export class QuoteController {
       const filters = {
         status: req.query.status as string,
         sort_by: req.query.sort_by as string || 'base_price',
-        sort_order: req.query.sort_order as string || 'asc'
+        sort_order: req.query.sort_order as string || 'asc',
+        userRole: req.user!.role
       };
       
       // Verify user has access to this request

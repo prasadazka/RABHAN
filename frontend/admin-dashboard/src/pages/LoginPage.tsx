@@ -85,8 +85,8 @@ export function LoginPage() {
               className="flex items-center justify-center mx-auto mb-6"
             >
               <img 
-                src="/rabhan_logo.svg" 
-                alt="RABHAN Logo" 
+                src={i18n.language === 'ar' ? "/assets/logo_arabic.jpeg" : "/rabhan_logo.svg"}
+                alt={i18n.language === 'ar' ? "RABHAN Arabic Logo" : "RABHAN Logo"}
                 className="w-32 h-32 object-contain"
                 onError={(e) => {
                   // Fallback to Sun icon if logo fails to load

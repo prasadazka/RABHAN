@@ -7,7 +7,7 @@ export interface QuoteRequest {
   system_size_kwp: number;
   location_address: string;
   service_area: string;
-  preferred_installation_date: string;
+  preferred_installation_date?: string; // Made optional for backward compatibility
   contact_phone: string;
   notes?: string;
   property_details?: {

@@ -25,15 +25,13 @@ export const rateLimiter = (options: RateLimiterOptions = {}) => {
     max,
     message,
     skipSuccessfulRequests,
-    standardHeaders: true,
-    legacyHeaders: false,
     keyGenerator: keyGenerator || ((req: Request) => {
       return req.ip || 'unknown';
     }),
     handler: (req: Request, res: Response) => {
       logger.warn('Rate limit exceeded', {
         ip: req.ip,
-        userId: req.user?.id,
+        userId: (req as any).user?.id,
         path: req.path,
         method: req.method
       });

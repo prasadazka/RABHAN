@@ -1359,6 +1359,7 @@
       "lineItems": "عناصر السعر",
       "paymentTerms": "شروط الدفع",
       "selectThisQuote": "اختر هذا العرض",
+      "noDetailedBreakdown": "لا يوجد تفصيل مفصل متاح",
       "noQuotationsAvailable": "لا توجد عروض مسعرة متاحة",
       "waitForContractorQuotes": "يرجى انتظار تقديم المقاولين لعروضهم المسعرة التفصيلية",
       "detailedQuotation": "العرض المسعر التفصيلي",
@@ -1550,6 +1551,7 @@
       "newRequest": "طلب جديد",
       "createFirst": "إنشاء أول طلب",
       "viewQuotes": "عرض العروض",
+      "viewQuotations": "عرض العروض المفصلة",
       "editRequest": "تعديل الطلب"
     },
     "status": {

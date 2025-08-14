@@ -94,7 +94,7 @@ const GlobalHeader: React.FC<GlobalHeaderProps> = ({
           onClick={onHome}
         >
           <img
-            src={rabhanLogo}
+            src={currentLanguage === 'ar' ? '/assets/logo_arabic.jpeg' : rabhanLogo}
             alt={t('header.logoAlt')}
             style={{
               width: 'clamp(72px, 12vw, 120px)',

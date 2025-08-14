@@ -59,7 +59,6 @@ export class QuoteService {
         data.service_area,
         JSON.stringify({
           ...data.property_details || {},
-          preferred_installation_date: data.preferred_installation_date,
           contact_phone: data.contact_phone,
           notes: data.notes || null
         }),
@@ -160,7 +159,7 @@ export class QuoteService {
       queryParams.push(limit, offset);
       const dataResult = await database.query(dataQuery, queryParams);
       
-      const requests = await Promise.all(dataResult.rows.map(row => this.formatQuoteRequest(row, true)));
+      const requests = await Promise.all(dataResult.rows.map(row => this.formatQuoteRequest(row, true, 'user')));
       
       logger.debug('Retrieved user quote requests', {
         user_id: userId,
@@ -347,16 +346,22 @@ export class QuoteService {
       status?: string;
       sort_by?: string;
       sort_order?: string;
+      userRole?: string;
     } = {}
   ): Promise<ContractorQuote[]> {
     const timer = performanceLogger.startTimer('get_quotes_for_request');
     
     try {
-      const { status, sort_by = 'base_price', sort_order = 'asc' } = filters;
+      const { status, sort_by = 'base_price', sort_order = 'asc', userRole } = filters;
       
       let whereClause = 'WHERE request_id = $1';
       const queryParams: any[] = [requestId];
       let paramIndex = 2;
+      
+      // For non-admin users, only show approved quotes
+      if (userRole && userRole !== 'admin') {
+        whereClause += ` AND admin_status = 'approved'`;
+      }
       
       if (status) {
         whereClause += ` AND admin_status = $${paramIndex}`;
@@ -373,6 +378,22 @@ export class QuoteService {
       `;
       
       const result = await database.query(query, queryParams);
+      
+      // Fetch line items for each quote
+      for (const quote of result.rows) {
+        try {
+          const lineItemsQuery = `
+            SELECT * FROM quotation_line_items 
+            WHERE quotation_id = $1 
+            ORDER BY id
+          `;
+          const lineItemsResult = await database.query(lineItemsQuery, [quote.id]);
+          quote.line_items = lineItemsResult.rows;
+        } catch (error) {
+          console.log('Error fetching line items for quote', quote.id, ':', error.message);
+          quote.line_items = [];
+        }
+      }
       
       // Enrich quotes with contractor information
       console.log('🔍 Enriching quotes with contractor information. Found', result.rows.length, 'quotes');
@@ -1048,7 +1069,7 @@ export class QuoteService {
     return contractorDetails;
   }
   
-  private async formatQuoteRequest(row: any, includeContractorDetails: boolean = false): Promise<any> {
+  private async formatQuoteRequest(row: any, includeContractorDetails: boolean = false, userRole?: string): Promise<any> {
     const propertyDetails = typeof row.property_details === 'string' 
       ? JSON.parse(row.property_details) 
       : row.property_details || {};
@@ -1075,9 +1096,8 @@ export class QuoteService {
       cancelled_at: row.cancelled_at,
       cancellation_reason: row.cancellation_reason,
       // Frontend expected fields
-      preferred_installation_date: propertyDetails.preferred_installation_date || row.created_at,
       contact_phone: propertyDetails.contact_phone || '',
-      quotes_count: row.quote_count || 0,
+      quotes_count: (userRole && userRole !== 'admin') ? (row.approved_quote_count || 0) : (row.quote_count || 0),
       approved_quote_count: row.approved_quote_count || 0
     };
 
@@ -1158,7 +1178,9 @@ export class QuoteService {
       storage_capacity_kwh: row.storage_capacity_kwh,
       monthly_production_kwh: row.monthly_production_kwh,
       // Additional fields for API response
-      days_until_expiry: row.days_until_expiry
+      days_until_expiry: row.days_until_expiry,
+      // Line items
+      line_items: row.line_items || []
     };
   }
 

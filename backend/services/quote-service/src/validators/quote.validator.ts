@@ -49,7 +49,6 @@ export const createQuoteRequestSchema = Joi.object({
   system_size_kwp: Joi.number().min(1).max(50).precision(2).required(),
   location_address: Joi.string().max(500).required(),
   service_area: Joi.string().max(100).required(),
-  preferred_installation_date: Joi.string().isoDate().required(),
   contact_phone: Joi.string().max(20).required(),
   notes: Joi.string().max(1000).optional().allow(''),
   property_details: simplePropertyDetailsSchema.optional(),

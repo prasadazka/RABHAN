@@ -12,6 +12,8 @@
   "description": "",
   "dependencies": {
     "@types/pg": "^8.15.5",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "pg-protocol": "^1.10.3",
+    "pg-types": "^4.1.0"
   }
 }

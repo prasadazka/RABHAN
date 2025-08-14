@@ -1,9 +1,13 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Load environment variables based on the mode
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  return {
   plugins: [
     react(),
     visualizer({
@@ -31,7 +35,7 @@ export default defineConfig({
     },
   },
   define: {
-    'process.env': process.env,
+    'process.env': env,
   },
   server: {
     port: 3000,
@@ -50,8 +54,26 @@ export default defineConfig({
         target: 'http://localhost:3003',
         changeOrigin: true,
       },
+      '/api/contractors': {
+        target: 'http://localhost:3004',
+        changeOrigin: true,
+      },
       '/api/solar-calculator': {
         target: 'http://localhost:3005',
+        changeOrigin: true,
+      },
+      '/api/marketplace/uploads': {
+        target: 'http://localhost:3007',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/marketplace/, ''),
+      },
+      '/api/marketplace': {
+        target: 'http://localhost:3007',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/marketplace/, '/api/v1'),
+      },
+      '/api/quotes': {
+        target: 'http://localhost:3009',
         changeOrigin: true,
       },
       '/api': {
@@ -80,4 +102,5 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
   },
+};
 });

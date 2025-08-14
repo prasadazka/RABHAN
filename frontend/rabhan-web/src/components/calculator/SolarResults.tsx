@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { 
   Zap, 
   DollarSign, 
@@ -26,6 +27,7 @@ import {
   Shield
 } from 'lucide-react';
 import { SolarCalculationResult, ClientType } from '../../types/solar.types';
+import { authService } from '../../services/auth.service';
 
 interface SolarResultsProps {
   result: SolarCalculationResult;
@@ -107,6 +109,7 @@ const SuccessIcon = () => (
 export const SolarResults: React.FC<SolarResultsProps> = ({ result, onRecalculate }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
+  const navigate = useNavigate();
   
   const formatCurrency = (amount: number) => {
     console.log('Formatting currency:', amount, 'Language:', i18n.language);
@@ -159,6 +162,37 @@ export const SolarResults: React.FC<SolarResultsProps> = ({ result, onRecalculat
 
   const savingsColor = result.savingsPercentage > 50 ? 'text-green-600' : 'text-orange-600';
   const roiColor = result.roiEstimate > 50 ? 'text-green-600' : 'text-blue-600';
+
+  const handleGetQuote = () => {
+    // Check if user is authenticated
+    const authState = authService.getState();
+    
+    if (authState.isAuthenticated && authState.user) {
+      // User is logged in, redirect to quote form with KWP pre-filled
+      const quoteData = {
+        system_size_kwp: result.solarPowerKWP
+      };
+      
+      // Store the calculator result in localStorage for auto-fill
+      localStorage.setItem('solar_calculator_result', JSON.stringify(quoteData));
+      
+      // Navigate to quotes page
+      navigate('/dashboard/quotes');
+    } else {
+      // User not logged in, store return URL and KWP data
+      const returnData = {
+        returnUrl: '/dashboard/quotes',
+        system_size_kwp: result.solarPowerKWP,
+        from: 'solar-calculator'
+      };
+      
+      // Store return data in localStorage
+      localStorage.setItem('quote_request_data', JSON.stringify(returnData));
+      
+      // Redirect to login (current page handles login popup)
+      window.location.href = '/?login=true';
+    }
+  };
 
   return (
     <motion.div
@@ -679,6 +713,7 @@ export const SolarResults: React.FC<SolarResultsProps> = ({ result, onRecalculat
         </motion.button>
         
         <motion.button
+          onClick={handleGetQuote}
           className="flex items-center justify-center space-x-3 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg"
           whileHover={{ scale: 1.02, y: -2 }}
           whileTap={{ scale: 0.98 }}

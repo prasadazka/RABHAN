@@ -1,8 +1,4 @@
 "use strict";
-/**
- * Verification Manager Service
- * Centralized service to handle verification status updates based on events
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verificationManager = exports.VerificationManagerService = void 0;
 const pg_1 = require("pg");
@@ -27,9 +23,7 @@ class VerificationManagerService {
         return VerificationManagerService.instance;
     }
     setupEventListeners() {
-        // Listen for profile completion events
         verification_events_1.verificationEvents.on('profile:completed', this.handleProfileCompletion.bind(this));
-        // Listen for document completion events
         verification_events_1.verificationEvents.on('documents:completed', this.handleDocumentCompletion.bind(this));
     }
     async handleProfileCompletion(event) {
@@ -66,7 +60,6 @@ class VerificationManagerService {
     async checkAndUpdateVerificationStatus(userId, trigger) {
         try {
             console.log(`🔄 Checking verification status after ${trigger} for user:`, userId);
-            // Get current user profile status
             const userResult = await this.userDbPool.query(`
         SELECT profile_completed, profile_completion_percentage, verification_status 
         FROM user_profiles 
@@ -78,7 +71,6 @@ class VerificationManagerService {
             }
             const userProfile = userResult.rows[0];
             const profileComplete = userProfile.profile_completed || userProfile.profile_completion_percentage >= 100;
-            // Check document completion status
             const docResult = await this.docDbPool.query(`
         SELECT dc.name as category_name, COUNT(d.id) as uploaded_count
         FROM document_categories dc
@@ -98,7 +90,6 @@ class VerificationManagerService {
                 currentStatus: userProfile.verification_status,
                 trigger
             });
-            // Determine new verification status
             const shouldBePending = profileComplete && allDocumentsUploaded;
             const currentStatus = userProfile.verification_status || 'not_verified';
             if (shouldBePending && currentStatus === 'not_verified') {
@@ -124,7 +115,6 @@ class VerificationManagerService {
         SET verification_status = $1, updated_at = CURRENT_TIMESTAMP 
         WHERE auth_user_id = $2
       `, [newStatus, userId]);
-            // Emit verification status change event
             const statusEvent = {
                 userId,
                 oldStatus: oldStatus,
@@ -145,11 +135,9 @@ class VerificationManagerService {
             throw error;
         }
     }
-    // Method to manually trigger verification check (for testing)
     async triggerVerificationCheck(userId) {
         await this.checkAndUpdateVerificationStatus(userId, 'profile_complete');
     }
-    // Cleanup method
     async cleanup() {
         await this.userDbPool.end();
         await this.docDbPool.end();

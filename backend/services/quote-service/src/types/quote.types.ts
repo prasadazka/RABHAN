@@ -355,7 +355,6 @@ export interface CreateQuoteRequestDTO {
   system_size_kwp: number;
   location_address: string;
   service_area: string;
-  preferred_installation_date: string;
   contact_phone: string;
   notes?: string;
   property_details?: SimplePropertyDetails;

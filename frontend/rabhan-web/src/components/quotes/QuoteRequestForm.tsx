@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme';
 import { quoteService, QuoteRequest } from '../../services/quote.service';
 import { ContractorProfile } from '../../services/contractor.service';
-import { CalendarIcon, MapPinIcon, PhoneIcon, HomeIcon } from 'lucide-react';
-import { ThemedDatePicker } from './ThemedDatePicker';
+import { MapPinIcon, PhoneIcon, HomeIcon } from 'lucide-react';
 
 interface QuoteRequestFormProps {
   user: {
@@ -32,7 +31,6 @@ interface FormData {
   system_size_kwp: number;
   location_address: string;
   service_area: string;
-  preferred_installation_date: string;
   contact_phone: string;
   notes: string;
   property_details: {
@@ -100,14 +98,30 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
     { value: 'mixed', label: t('quotes.form.propertyDetails.roofOrientations.mixed', 'Multiple Directions') },
   ];
 
+  // Check for solar calculator data on component mount
+  const getSolarCalculatorData = () => {
+    try {
+      const solarData = localStorage.getItem('solar_calculator_result');
+      if (solarData) {
+        const parsed = JSON.parse(solarData);
+        // Don't clear the data here - let BasicInfoForm handle it first
+        return parsed;
+      }
+    } catch (error) {
+      console.error('Error reading solar calculator data:', error);
+    }
+    return null;
+  };
+
+  const solarCalculatorData = getSolarCalculatorData();
+
   const [formData, setFormData] = useState<FormData>({
-    system_size_kwp: initialData?.system_size_kwp || 6,
+    system_size_kwp: initialData?.system_size_kwp || solarCalculatorData?.system_size_kwp || 6,
     location_address: initialData?.location_address || 
       (user.street_address 
         ? `${user.street_address}, ${user.district || ''}, ${user.city || ''}, ${user.region || ''}`.replace(/,\s*,/g, ',').replace(/^,|,$/g, '')
         : ''),
     service_area: initialData?.service_area || user.region?.toLowerCase() || 'riyadh',
-    preferred_installation_date: initialData?.preferred_installation_date || '',
     contact_phone: initialData?.contact_phone || user.phone || '',
     notes: initialData?.notes || '',
     property_details: {
@@ -121,20 +135,8 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [showSolarCalculatorNotice, setShowSolarCalculatorNotice] = useState(!!solarCalculatorData);
 
-  // Set minimum date to tomorrow
-  useEffect(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const minDate = tomorrow.toISOString().split('T')[0];
-    
-    if (!formData.preferred_installation_date) {
-      setFormData(prev => ({
-        ...prev,
-        preferred_installation_date: minDate
-      }));
-    }
-  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -151,16 +153,6 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
       newErrors.service_area = t('quotes.form.errors.serviceAreaRequired');
     }
 
-    if (!formData.preferred_installation_date) {
-      newErrors.preferred_installation_date = t('quotes.form.errors.dateRequired');
-    } else {
-      const selectedDate = new Date(formData.preferred_installation_date);
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      if (selectedDate < tomorrow) {
-        newErrors.preferred_installation_date = t('quotes.form.errors.dateInFuture');
-      }
-    }
 
     if (!formData.contact_phone.trim()) {
       newErrors.contact_phone = t('quotes.form.errors.phoneRequired');
@@ -189,7 +181,6 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
         system_size_kwp: formData.system_size_kwp,
         location_address: formData.location_address,
         service_area: formData.service_area,
-        preferred_installation_date: formData.preferred_installation_date,
         contact_phone: formData.contact_phone,
         notes: formData.notes || undefined,
         property_details: formData.property_details,
@@ -378,6 +369,54 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '1rem' }}>
+          {/* Solar Calculator Notice */}
+          {showSolarCalculatorNotice && (
+            <div style={{
+              backgroundColor: '#f0fff4',
+              border: '2px solid #10b981',
+              borderRadius: '8px',
+              padding: '1rem',
+              marginBottom: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <div style={{
+                width: '24px',
+                height: '24px',
+                backgroundColor: '#10b981',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}>
+                ✓
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#047857' }}>
+                  {t('quotes.form.solarCalculatorNotice', 'Solar Calculator data auto-filled! System size set to {kwp} KWP based on your calculation.').replace('{kwp}', solarCalculatorData?.system_size_kwp || 0)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSolarCalculatorNotice(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#047857',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {/* Main Form Grid - Two Columns */}
           <div style={{ 
             display: 'grid', 
@@ -455,49 +494,25 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
                   </div>
                 </div>
 
-                {/* Installation Date & Phone */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div>
-                    <label style={{...labelStyle, marginBottom: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px'} as React.CSSProperties}>
-                      <CalendarIcon size={12} />
-                      {t('quotes.form.installationDate.label')}
-                    </label>
-                    <ThemedDatePicker
-                      value={formData.preferred_installation_date}
-                      onChange={(value) => handleInputChange('preferred_installation_date', value)}
-                      style={{
-                        ...inputStyle, 
-                        padding: '8px 12px'
-                      }}
-                      min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                      placeholder={t('quotes.form.installationDate.placeholder')}
-                    />
-                    {errors.preferred_installation_date && (
-                      <p style={{ color: theme.colors.semantic.error.main, fontSize: '11px', marginTop: '2px' }}>
-                        {errors.preferred_installation_date}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label style={{...labelStyle, marginBottom: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px'} as React.CSSProperties}>
-                      <PhoneIcon size={12} />
-                      {t('quotes.form.phone.label')}
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.contact_phone}
-                      onChange={(e) => handleInputChange('contact_phone', e.target.value)}
-                      style={{...inputStyle, padding: '8px 12px'}}
-                      placeholder={t('quotes.form.phone.placeholder')}
-                      maxLength={13}
-                    />
-                    {errors.contact_phone && (
-                      <p style={{ color: theme.colors.semantic.error.main, fontSize: '11px', marginTop: '2px' }}>
-                        {errors.contact_phone}
-                      </p>
-                    )}
-                  </div>
+                {/* Phone */}
+                <div>
+                  <label style={{...labelStyle, marginBottom: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px'} as React.CSSProperties}>
+                    <PhoneIcon size={12} />
+                    {t('quotes.form.phone.label')}
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.contact_phone}
+                    onChange={(e) => handleInputChange('contact_phone', e.target.value)}
+                    style={{...inputStyle, padding: '8px 12px'}}
+                    placeholder={t('quotes.form.phone.placeholder')}
+                    maxLength={13}
+                  />
+                  {errors.contact_phone && (
+                    <p style={{ color: theme.colors.semantic.error.main, fontSize: '11px', marginTop: '2px' }}>
+                      {errors.contact_phone}
+                    </p>
+                  )}
                 </div>
               </div>
 

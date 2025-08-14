@@ -1,8 +1,4 @@
 "use strict";
-/**
- * Verification Events System
- * Event-driven architecture for automatic verification status updates
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verificationEvents = exports.VerificationEventEmitter = void 0;
 class VerificationEventEmitter {

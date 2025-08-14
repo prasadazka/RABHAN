@@ -102,6 +102,7 @@ interface ContractorQuote {
   solar_system_capacity_kwp: string;
   storage_capacity_kwh: string;
   monthly_production_kwh: string;
+  line_items: any[];
 }
 
 export function QuoteDetailPage() {
@@ -897,48 +898,15 @@ export function QuoteDetailPage() {
                   const basePrice = parseFloat(selectedQuoteForDetail.base_price?.toString() || '0');
                   const overpriceAmount = parseFloat(selectedQuoteForDetail.overprice_amount?.toString() || '0');
                   const totalUserPrice = parseFloat(selectedQuoteForDetail.total_user_price?.toString() || '0');
-                  const systemCapacity = parseFloat(selectedQuoteForDetail.solar_system_capacity_kwp || '0');
-                  const storageCapacity = parseFloat(selectedQuoteForDetail.storage_capacity_kwh || '0');
                   
-                  // Create itemized breakdown based on quote totals
-                  // This is a calculated breakdown based on typical solar system components
-                  const items = [
-                    {
-                      sn: 1,
-                      item: "Solar Panel",
-                      description: "450W efficiency monocrystalline",
-                      qty: Math.ceil(systemCapacity * 1000 / 450), // ~23 panels for 10.5kW
-                      unitPrice: Math.round(basePrice * 0.28 / Math.ceil(systemCapacity * 1000 / 450)), // ~28% of total cost
-                    },
-                    {
-                      sn: 2,
-                      item: "Inverter",
-                      description: `Hybrid - ${Math.ceil(systemCapacity)}KW`,
-                      qty: 1,
-                      unitPrice: Math.round(basePrice * 0.18), // ~18% of total cost
-                    },
-                    {
-                      sn: 3,
-                      item: "Batteries",
-                      description: `LifePO4 - ${storageCapacity}KWH`,
-                      qty: 1,
-                      unitPrice: Math.round(basePrice * 0.35), // ~35% of total cost
-                    },
-                    {
-                      sn: 4,
-                      item: "Installation",
-                      description: "Mounting, wiring & commissioning",
-                      qty: 1,
-                      unitPrice: Math.round(basePrice * 0.19), // ~19% of total cost
-                    }
-                  ];
-
-                  // Calculate remaining to match exact base price
-                  const calculatedTotal = items.reduce((sum, item) => sum + (item.qty * item.unitPrice), 0);
-                  const difference = basePrice - calculatedTotal;
-                  if (difference !== 0) {
-                    items[items.length - 1].unitPrice += difference; // Adjust last item to match exact total
-                  }
+                  // Use actual contractor-submitted line items if available
+                  const contractorLineItems = selectedQuoteForDetail.line_items || [];
+                  const hasRealLineItems = contractorLineItems && contractorLineItems.length > 0;
+                  
+                  // Debug: Check what line items data is received
+                  console.log('contractorLineItems:', contractorLineItems);
+                  console.log('hasRealLineItems:', hasRealLineItems);
+                  console.log('selectedQuoteForDetail.line_items:', selectedQuoteForDetail.line_items);
 
                   return (
                     <div className="space-y-6">
@@ -961,38 +929,48 @@ export function QuoteDetailPage() {
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                              {items.map((item) => {
-                                const totalPrice = item.qty * item.unitPrice;
-                                const commission = totalPrice * 0.15;
-                                const overprice = totalPrice * 0.10;
-                                const userPrice = totalPrice + overprice;
-                                const vendorNet = totalPrice - commission;
-                                
-                                return (
-                                  <tr key={item.sn} className="hover:bg-gray-50">
-                                    <td className="p-3 font-medium">{item.sn}</td>
-                                    <td className="p-3 font-medium">{item.item}</td>
-                                    <td className="p-3 text-gray-600">{item.description}</td>
-                                    <td className="p-3 text-center font-mono">{item.qty}</td>
-                                    <td className="p-3 text-right font-mono">{item.unitPrice.toLocaleString()}</td>
-                                    <td className="p-3 text-right font-mono font-semibold">{totalPrice.toLocaleString()}</td>
-                                    <td className="p-3 text-right font-mono text-red-600">{commission.toLocaleString()}</td>
-                                    <td className="p-3 text-right font-mono text-orange-600">{overprice.toLocaleString()}</td>
-                                    <td className="p-3 text-right font-mono font-semibold text-blue-600">{userPrice.toLocaleString()}</td>
-                                    <td className="p-3 text-right font-mono text-green-600">{vendorNet.toLocaleString()}</td>
-                                  </tr>
-                                );
-                              })}
+                              {hasRealLineItems ? (
+                                contractorLineItems.map((item: any, index: number) => {
+                                  const totalPrice = (item.units || 1) * (item.unit_price || 0);
+                                  const commission = totalPrice * 0.15;
+                                  const overprice = totalPrice * 0.10;
+                                  const userPrice = totalPrice + overprice;
+                                  const vendorNet = totalPrice - commission;
+                                  
+                                  return (
+                                    <tr key={index} className="hover:bg-gray-50">
+                                      <td className="p-3 font-medium">{item.serial_number || index + 1}</td>
+                                      <td className="p-3 font-medium">{item.item_name || 'Not specified'}</td>
+                                      <td className="p-3 text-gray-600">{item.description || 'No description'}</td>
+                                      <td className="p-3 text-center font-mono">{item.units || 0}</td>
+                                      <td className="p-3 text-right font-mono">{(item.unit_price || 0).toLocaleString()}</td>
+                                      <td className="p-3 text-right font-mono font-semibold">{totalPrice.toLocaleString()}</td>
+                                      <td className="p-3 text-right font-mono text-red-600">{commission.toLocaleString()}</td>
+                                      <td className="p-3 text-right font-mono text-orange-600">{overprice.toLocaleString()}</td>
+                                      <td className="p-3 text-right font-mono font-semibold text-blue-600">{userPrice.toLocaleString()}</td>
+                                      <td className="p-3 text-right font-mono text-green-600">{vendorNet.toLocaleString()}</td>
+                                    </tr>
+                                  );
+                                })
+                              ) : (
+                                <tr>
+                                  <td colSpan={10} className="p-6 text-center text-gray-500">
+                                    No line items data received from backend API - Check if contractor submitted line items and API is returning them
+                                  </td>
+                                </tr>
+                              )}
                               
                               {/* Totals Row */}
-                              <tr className="bg-gray-100 font-semibold border-t-2 border-gray-300">
-                                <td colSpan={5} className="p-3 text-right">TOTALS:</td>
-                                <td className="p-3 text-right font-mono text-lg">{basePrice.toLocaleString()}</td>
-                                <td className="p-3 text-right font-mono text-red-600">{(basePrice * 0.15).toLocaleString()}</td>
-                                <td className="p-3 text-right font-mono text-orange-600">{overpriceAmount.toLocaleString()}</td>
-                                <td className="p-3 text-right font-mono text-blue-600 text-lg">{totalUserPrice.toLocaleString()}</td>
-                                <td className="p-3 text-right font-mono text-green-600">{(basePrice * 0.85).toLocaleString()}</td>
-                              </tr>
+                              {hasRealLineItems && (
+                                <tr className="bg-gray-100 font-semibold border-t-2 border-gray-300">
+                                  <td colSpan={5} className="p-3 text-right">TOTALS:</td>
+                                  <td className="p-3 text-right font-mono text-lg">{basePrice.toLocaleString()}</td>
+                                  <td className="p-3 text-right font-mono text-red-600">{(basePrice * 0.15).toLocaleString()}</td>
+                                  <td className="p-3 text-right font-mono text-orange-600">{overpriceAmount.toLocaleString()}</td>
+                                  <td className="p-3 text-right font-mono text-blue-600 text-lg">{totalUserPrice.toLocaleString()}</td>
+                                  <td className="p-3 text-right font-mono text-green-600">{(basePrice * 0.85).toLocaleString()}</td>
+                                </tr>
+                              )}
                             </tbody>
                           </table>
                         </div>

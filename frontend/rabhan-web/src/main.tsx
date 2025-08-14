@@ -401,7 +401,31 @@ const SolarCalculatorPage = () => {
     console.log('Login successful:', user);
     setIsLoginPopupOpen(false);
     
-    // Immediate navigation based on user role
+    // Check if there's a pending quote request from solar calculator
+    try {
+      const quoteRequestData = localStorage.getItem('quote_request_data');
+      if (quoteRequestData) {
+        const data = JSON.parse(quoteRequestData);
+        localStorage.removeItem('quote_request_data');
+        
+        // Store the calculator data for auto-fill
+        if (data.system_size_kwp) {
+          localStorage.setItem('solar_calculator_result', JSON.stringify({
+            system_size_kwp: data.system_size_kwp
+          }));
+        }
+        
+        // Navigate to the return URL if user
+        if (user && user.role === 'USER' && data.returnUrl) {
+          navigate(data.returnUrl);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error handling quote request data:', error);
+    }
+    
+    // Default navigation based on user role
     if (user && user.role === 'CONTRACTOR') {
       console.log('🔄 Redirecting contractor to contractor dashboard');
       navigate('/contractor/dashboard');
