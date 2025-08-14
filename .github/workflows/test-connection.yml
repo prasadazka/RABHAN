@@ -1,0 +1,71 @@
+name: 🔍 Test AWS Connection
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_HOST: 16.170.220.109
+
+jobs:
+  test-connection:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🔑 Setup SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/rabhan-key.pem
+        chmod 600 ~/.ssh/rabhan-key.pem
+        ssh-keyscan -H ${{ env.AWS_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: 🧪 Test SSH Connection
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          echo "✅ SSH Connection successful!"
+          echo "Current directory: $(pwd)"
+          echo "User: $(whoami)"
+          echo "OS: $(lsb_release -d)"
+          echo "Free space: $(df -h / | tail -1)"
+          echo "Memory: $(free -h | grep Mem)"
+        '
+        
+    - name: 🐳 Check Docker
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          if command -v docker &> /dev/null; then
+            echo "✅ Docker is installed"
+            docker --version
+            echo "Docker status: $(sudo systemctl is-active docker)"
+          else
+            echo "❌ Docker not installed"
+          fi
+          
+          if command -v docker-compose &> /dev/null; then
+            echo "✅ Docker Compose is installed"
+            docker-compose --version
+          else
+            echo "❌ Docker Compose not installed"
+          fi
+        '
+        
+    - name: 📂 Check Existing Deployment
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          if [ -d "/opt/rabhan" ]; then
+            echo "📂 Found existing deployment at /opt/rabhan"
+            ls -la /opt/rabhan/ | head -10
+          else
+            echo "📂 No existing deployment found"
+          fi
+          
+          echo "🔍 Checking running containers:"
+          docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || echo "No containers running"
+          
+          echo "🌐 Checking ports:"
+          netstat -tulpn | grep -E ":(3000|3001|3002|3003|3004|3005|3006|3007|3008|5432|6379)" || echo "No services on expected ports"
+        '
+        
+    - name: 🧹 Cleanup
+      if: always()
+      run: |
+        rm -f ~/.ssh/rabhan-key.pem
