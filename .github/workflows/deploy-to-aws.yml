@@ -1,0 +1,240 @@
+name: 🚀 Deploy RABHAN to AWS
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment Environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+env:
+  AWS_REGION: eu-north-1
+  AWS_HOST: 16.170.220.109
+  REGISTRY: ghcr.io
+  IMAGE_NAME: rabhan
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: 📂 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-js-version: '18'
+        cache: 'npm'
+        cache-dependency-path: |
+          frontend/rabhan-web/package-lock.json
+          frontend/admin-dashboard/package-lock.json
+          
+    - name: 📦 Install dependencies (Frontend)
+      run: |
+        cd frontend/rabhan-web && npm ci
+        cd ../admin-dashboard && npm ci
+        
+    - name: 🏗️ Build Frontend Applications
+      run: |
+        cd frontend/rabhan-web
+        npm run build
+        cd ../admin-dashboard  
+        npm run build
+        
+    - name: 🔑 Setup SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/rabhan-key.pem
+        chmod 600 ~/.ssh/rabhan-key.pem
+        ssh-keyscan -H ${{ env.AWS_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: 🧹 Clean AWS Instance
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          # Stop existing containers
+          docker-compose -f /opt/rabhan/docker-compose.production.yml down 2>/dev/null || true
+          
+          # Clean Docker system
+          docker system prune -af || true
+          
+          # Remove old deployment
+          sudo rm -rf /opt/rabhan-new
+          
+          # Create fresh deployment directory
+          sudo mkdir -p /opt/rabhan-new
+          sudo chown ubuntu:ubuntu /opt/rabhan-new
+        '
+        
+    - name: 📤 Deploy Application Files
+      run: |
+        # Create deployment package
+        tar --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='logs' \
+            --exclude='*.log' \
+            --exclude='uploads' \
+            -czf rabhan-deployment.tar.gz .
+            
+        # Upload to AWS
+        scp -i ~/.ssh/rabhan-key.pem rabhan-deployment.tar.gz ubuntu@${{ env.AWS_HOST }}:/opt/rabhan-new/
+        
+        # Extract on AWS
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          cd /opt/rabhan-new
+          tar -xzf rabhan-deployment.tar.gz
+          rm rabhan-deployment.tar.gz
+        '
+        
+    - name: 🔧 Setup Production Environment
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          cd /opt/rabhan-new
+          
+          # Create production environment file
+          cat > .env << EOF
+          # Database Configuration
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          
+          # JWT Configuration
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
+          
+          # Twilio Configuration
+          TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}
+          
+          # Domain Configuration
+          DOMAIN=rabhan.com
+          ADMIN_DOMAIN=admin.rabhan.com
+          VITE_API_BASE_URL=http://${{ env.AWS_HOST }}
+          
+          # Node Environment
+          NODE_ENV=production
+          EOF
+          
+          # Make scripts executable
+          chmod +x deploy.sh
+          chmod +x scripts/init-multiple-databases.sh
+        '
+        
+    - name: 🐳 Start Docker Services
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          cd /opt/rabhan-new
+          
+          # Install Docker if not present
+          if ! command -v docker &> /dev/null; then
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh get-docker.sh
+            sudo usermod -aG docker ubuntu
+            sudo systemctl start docker
+            sudo systemctl enable docker
+          fi
+          
+          # Install Docker Compose if not present
+          if ! command -v docker-compose &> /dev/null; then
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+          fi
+          
+          # Start services
+          docker-compose -f docker-compose.production.yml up -d --build
+        '
+        
+    - name: ⏳ Wait for Services
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          echo "Waiting for services to start..."
+          sleep 60
+        '
+        
+    - name: 🏥 Health Check
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          cd /opt/rabhan-new
+          
+          echo "=== SERVICE STATUS ==="
+          docker-compose -f docker-compose.production.yml ps
+          
+          echo "=== PORT STATUS ==="
+          netstat -tulpn | grep -E ":(3000|3001|3002|3003|3004|3005|3006|3007|3008|5432|6379)" || true
+          
+          echo "=== DOCKER LOGS (Last 20 lines) ==="
+          docker-compose -f docker-compose.production.yml logs --tail=20
+        '
+        
+    - name: 🔄 Switch to New Deployment
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          # Backup current deployment
+          sudo mv /opt/rabhan /opt/rabhan-backup-$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+          
+          # Switch to new deployment
+          sudo mv /opt/rabhan-new /opt/rabhan
+          
+          # Create management scripts
+          sudo tee /usr/local/bin/rabhan-status << "EOF" > /dev/null
+#!/bin/bash
+cd /opt/rabhan
+echo "RABHAN Platform Status - $(date)"
+echo "====================================="
+docker-compose -f docker-compose.production.yml ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+echo ""
+echo "System Resources:"
+free -h | head -2
+df -h / | tail -1
+echo ""
+echo "Recent Logs:"
+docker-compose -f docker-compose.production.yml logs --tail=5 --timestamps
+EOF
+          
+          sudo tee /usr/local/bin/rabhan-restart << "EOF" > /dev/null
+#!/bin/bash
+cd /opt/rabhan
+echo "Restarting RABHAN Platform..."
+docker-compose -f docker-compose.production.yml restart
+echo "Restart completed"
+rabhan-status
+EOF
+          
+          sudo chmod +x /usr/local/bin/rabhan-*
+        '
+        
+    - name: 🎉 Deployment Summary
+      run: |
+        echo "🚀 RABHAN Platform Successfully Deployed!"
+        echo ""
+        echo "📱 Applications:"
+        echo "  • Main App: http://${{ env.AWS_HOST }}:3000"
+        echo "  • Admin Panel: http://${{ env.AWS_HOST }}:3010"
+        echo ""
+        echo "🔗 API Endpoints:"
+        echo "  • Auth Service: http://${{ env.AWS_HOST }}:3001"
+        echo "  • User Service: http://${{ env.AWS_HOST }}:3002"
+        echo "  • Document Service: http://${{ env.AWS_HOST }}:3003"
+        echo "  • Contractor Service: http://${{ env.AWS_HOST }}:3004"
+        echo "  • Solar Calculator: http://${{ env.AWS_HOST }}:3005"
+        echo "  • Admin Service: http://${{ env.AWS_HOST }}:3006"
+        echo "  • Marketplace Service: http://${{ env.AWS_HOST }}:3007"
+        echo "  • Document Proxy: http://${{ env.AWS_HOST }}:3008"
+        echo ""
+        echo "🛠️ Management Commands:"
+        echo "  • Check Status: ssh -i rabhan-key.pem ubuntu@${{ env.AWS_HOST }} 'rabhan-status'"
+        echo "  • Restart Services: ssh -i rabhan-key.pem ubuntu@${{ env.AWS_HOST }} 'rabhan-restart'"
+        
+    - name: 🧹 Cleanup
+      if: always()
+      run: |
+        rm -f ~/.ssh/rabhan-key.pem
+        rm -f rabhan-deployment.tar.gz

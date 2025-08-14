@@ -1,0 +1,194 @@
+name: 🎛️ Manual Deployment Control
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'status'
+        type: choice
+        options:
+        - status
+        - restart
+        - stop
+        - logs
+        - backup
+        - cleanup
+      service:
+        description: 'Specific service (optional, for restart/logs)'
+        required: false
+        type: choice
+        options:
+        - all
+        - frontend
+        - admin-frontend
+        - auth-service
+        - user-service
+        - document-service
+        - contractor-service
+        - solar-calculator-service
+        - admin-service
+        - marketplace-service
+        - document-proxy-service
+        - postgres
+        - redis
+        - nginx
+
+env:
+  AWS_HOST: 16.170.220.109
+
+jobs:
+  manual-control:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: 🔑 Setup SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/rabhan-key.pem
+        chmod 600 ~/.ssh/rabhan-key.pem
+        ssh-keyscan -H ${{ env.AWS_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: 📊 Check Status
+      if: ${{ github.event.inputs.action == 'status' }}
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          cd /opt/rabhan
+          
+          echo "🏥 RABHAN Platform Status - $(date)"
+          echo "============================================"
+          
+          echo ""
+          echo "📋 Service Status:"
+          docker-compose -f docker-compose.production.yml ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+          
+          echo ""
+          echo "🖥️ System Resources:"
+          echo "Memory: $(free -h | grep Mem | awk "{print \$3 \"/\" \$2 \" (\" int(\$3/\$2*100) \"%)\"}")"
+          echo "Disk: $(df -h / | tail -1 | awk "{print \$3 \"/\" \$2 \" (\" \$5 \" used)\"}")"
+          echo "Load: $(uptime | awk -F"load average:" "{print \$2}")"
+          echo "Uptime: $(uptime -p)"
+          
+          echo ""
+          echo "🌐 Port Status:"
+          for port in 3000 3001 3002 3003 3004 3005 3006 3007 3008 5432 6379; do
+            if netstat -tulpn | grep -q ":${port}"; then
+              echo "✅ Port ${port} - Active"
+            else
+              echo "❌ Port ${port} - Inactive"
+            fi
+          done
+          
+          echo ""
+          echo "📈 Docker Stats (Top 5 by CPU):"
+          docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" | head -6
+        '
+        
+    - name: 🔄 Restart Services
+      if: ${{ github.event.inputs.action == 'restart' }}
+      run: |
+        SERVICE="${{ github.event.inputs.service }}"
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} "
+          cd /opt/rabhan
+          
+          if [ '$SERVICE' = 'all' ] || [ -z '$SERVICE' ]; then
+            echo 'Restarting all services...'
+            docker-compose -f docker-compose.production.yml restart
+          else
+            echo 'Restarting service: $SERVICE'
+            docker-compose -f docker-compose.production.yml restart $SERVICE
+          fi
+          
+          echo 'Waiting for services to stabilize...'
+          sleep 30
+          
+          echo 'Post-restart status:'
+          docker-compose -f docker-compose.production.yml ps
+        "
+        
+    - name: 🛑 Stop Services
+      if: ${{ github.event.inputs.action == 'stop' }}
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          cd /opt/rabhan
+          
+          echo "Stopping RABHAN Platform..."
+          docker-compose -f docker-compose.production.yml down
+          
+          echo "Services stopped. Status:"
+          docker-compose -f docker-compose.production.yml ps
+        '
+        
+    - name: 📄 View Logs
+      if: ${{ github.event.inputs.action == 'logs' }}
+      run: |
+        SERVICE="${{ github.event.inputs.service }}"
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} "
+          cd /opt/rabhan
+          
+          if [ '$SERVICE' = 'all' ] || [ -z '$SERVICE' ]; then
+            echo 'Showing logs for all services (last 50 lines):'
+            docker-compose -f docker-compose.production.yml logs --tail=50 --timestamps
+          else
+            echo 'Showing logs for service: $SERVICE (last 100 lines)'
+            docker-compose -f docker-compose.production.yml logs --tail=100 --timestamps $SERVICE
+          fi
+        "
+        
+    - name: 💾 Create Backup
+      if: ${{ github.event.inputs.action == 'backup' }}
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          echo "Creating backup..."
+          
+          BACKUP_DIR="/backup/rabhan/manual-$(date +%Y%m%d_%H%M%S)"
+          sudo mkdir -p "$BACKUP_DIR"
+          
+          echo "Backing up database..."
+          docker exec rabhan-postgres pg_dumpall -U postgres | gzip > "$BACKUP_DIR/database.sql.gz"
+          
+          echo "Backing up uploads..."
+          sudo tar -czf "$BACKUP_DIR/uploads.tar.gz" -C /opt/rabhan data/uploads 2>/dev/null || echo "No uploads to backup"
+          
+          echo "Backing up environment..."
+          sudo cp /opt/rabhan/.env "$BACKUP_DIR/" 2>/dev/null || echo "No .env file to backup"
+          
+          echo "Backup completed: $BACKUP_DIR"
+          ls -la "$BACKUP_DIR"
+        '
+        
+    - name: 🧹 Cleanup
+      if: ${{ github.event.inputs.action == 'cleanup' }}
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          echo "Performing system cleanup..."
+          
+          # Clean Docker system
+          echo "Cleaning Docker..."
+          docker system prune -f
+          docker volume prune -f
+          
+          # Clean old backups (keep last 3)
+          echo "Cleaning old backups..."
+          sudo find /backup/rabhan -type d -name "*-*" | sort -r | tail -n +4 | sudo xargs rm -rf 2>/dev/null || echo "No old backups to clean"
+          
+          # Clean old deployment backups (keep last 2)
+          echo "Cleaning old deployment backups..."
+          sudo find /opt -maxdepth 1 -name "rabhan-backup-*" -type d | sort -r | tail -n +3 | sudo xargs rm -rf 2>/dev/null || echo "No old deployment backups to clean"
+          
+          # Clean logs
+          echo "Cleaning logs..."
+          docker-compose -f /opt/rabhan/docker-compose.production.yml logs --tail=1000 > /dev/null 2>&1 || true
+          
+          echo "Cleanup completed!"
+          
+          echo "Current disk usage:"
+          df -h /
+        '
+        
+    - name: 🧹 Cleanup SSH
+      if: always()
+      run: |
+        rm -f ~/.ssh/rabhan-key.pem

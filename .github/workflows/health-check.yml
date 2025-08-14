@@ -1,0 +1,126 @@
+name: 🏥 Production Health Check
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+env:
+  AWS_HOST: 16.170.220.109
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: 🔑 Setup SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/rabhan-key.pem
+        chmod 600 ~/.ssh/rabhan-key.pem
+        ssh-keyscan -H ${{ env.AWS_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: 🏥 Check Service Health
+      id: health-check
+      run: |
+        # Check all services
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          cd /opt/rabhan 2>/dev/null || { echo "ERROR: Deployment directory not found"; exit 1; }
+          
+          echo "=== HEALTH CHECK REPORT - $(date) ==="
+          
+          # Check Docker services
+          if ! docker-compose -f docker-compose.production.yml ps | grep -q "Up"; then
+            echo "ERROR: Some services are down"
+            docker-compose -f docker-compose.production.yml ps
+            exit 1
+          fi
+          
+          # Check key ports
+          echo "Checking critical ports..."
+          for port in 3000 3001 3002 3003 3004 3005 3006 3007 3008 5432 6379; do
+            if ! netstat -tulpn | grep -q ":${port}"; then
+              echo "ERROR: Port ${port} is not listening"
+              exit 1
+            else
+              echo "✅ Port ${port} is active"
+            fi
+          done
+          
+          # Check database connectivity
+          echo "Testing database connectivity..."
+          if ! docker exec rabhan-postgres pg_isready -U postgres -d rabhan_auth; then
+            echo "ERROR: PostgreSQL is not ready"
+            exit 1
+          fi
+          
+          # Check Redis connectivity
+          echo "Testing Redis connectivity..."
+          if ! docker exec rabhan-redis redis-cli -a ${{ secrets.REDIS_PASSWORD }} ping | grep -q "PONG"; then
+            echo "ERROR: Redis is not responding"
+            exit 1
+          fi
+          
+          # Check system resources
+          echo "System resources:"
+          free -h | head -2
+          df -h / | tail -1
+          
+          # Check if any service is consuming too much memory
+          HIGH_MEMORY=$(docker stats --no-stream --format "table {{.Container}}\t{{.MemUsage}}" | grep -E "([5-9][0-9][0-9]MiB|[1-9]GiB)")
+          if [ ! -z "$HIGH_MEMORY" ]; then
+            echo "WARNING: High memory usage detected:"
+            echo "$HIGH_MEMORY"
+          fi
+          
+          echo "✅ All health checks passed!"
+        '
+        
+    - name: 🔄 Auto-Restart if Needed
+      if: failure()
+      run: |
+        echo "Health check failed, attempting auto-restart..."
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          cd /opt/rabhan
+          echo "Restarting failed services..."
+          docker-compose -f docker-compose.production.yml restart
+          sleep 30
+          
+          # Re-check health
+          if docker-compose -f docker-compose.production.yml ps | grep -q "Exit"; then
+            echo "Auto-restart failed, manual intervention required"
+            exit 1
+          else
+            echo "Auto-restart successful"
+          fi
+        '
+        
+    - name: 📊 Generate Status Report
+      if: always()
+      run: |
+        ssh -i ~/.ssh/rabhan-key.pem ubuntu@${{ env.AWS_HOST }} '
+          cd /opt/rabhan
+          echo "=== CURRENT STATUS REPORT ==="
+          echo "Timestamp: $(date)"
+          echo ""
+          
+          echo "Service Status:"
+          docker-compose -f docker-compose.production.yml ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+          echo ""
+          
+          echo "System Resources:"
+          echo "Memory: $(free -h | grep Mem | awk "{print \$3 \"/\" \$2}")"
+          echo "Disk: $(df -h / | tail -1 | awk "{print \$3 \"/\" \$2 \" (\" \$5 \" used)\"}")"
+          echo "Load: $(uptime | awk -F"load average:" "{print \$2}")"
+          echo ""
+          
+          echo "Recent Errors (if any):"
+          docker-compose -f docker-compose.production.yml logs --tail=10 | grep -i error || echo "No recent errors found"
+        '
+        
+    - name: 🧹 Cleanup
+      if: always()
+      run: |
+        rm -f ~/.ssh/rabhan-key.pem
