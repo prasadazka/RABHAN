@@ -1,0 +1,28 @@
+name: 🚀 Auto Deploy RABHAN
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🚀 Deploy to AWS
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 16.170.220.109
+        username: ubuntu
+        key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+        script: |
+          cd /home/ubuntu/RABHAN
+          git pull origin master
+          npm install 2>/dev/null || true
+          cd frontend/rabhan-web && npm run build
+          cd ../admin-dashboard && npm run build  
+          cd /home/ubuntu/RABHAN
+          pm2 restart all
+          echo "✅ Deployment complete"
+          pm2 list
