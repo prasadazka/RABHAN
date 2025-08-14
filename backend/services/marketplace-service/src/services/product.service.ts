@@ -463,34 +463,43 @@ export class ProductService {
   }
 
   /**
-   * Delete product (Soft delete - set status to INACTIVE)
+   * Delete product (Hard delete - completely remove from database)
    */
   async deleteProduct(productId: string, userId: string, userContractorId?: string): Promise<void> {
     const startTime = process.hrtime.bigint();
     
     try {
-      // Verify product exists and user can delete it
-      const existingProduct = await this.getProductById(productId);
-      if (!existingProduct) {
+      // First get product info with a more permissive query (don't filter by status)
+      const query = `
+        SELECT 
+          p.*,
+          c.name as category_name,
+          c.name_ar as category_name_ar
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.id = $1
+      `;
+
+      const result = await db.query(query, [productId]);
+      
+      if (result.rowCount === 0) {
         throw new NotFoundError('Product not found');
       }
+
+      const existingProduct = this.mapRowToProduct(result.rows[0]);
 
       // Check contractor authorization
       if (userContractorId && existingProduct.contractorId !== userContractorId) {
         throw new ValidationError('Cannot delete product belonging to different contractor');
       }
 
-      // Soft delete (set status to INACTIVE)
-      const query = `
-        UPDATE products 
-        SET status = 'INACTIVE', updated_by = $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2
-      `;
-
-      const result = await db.query(query, [userId, productId]);
+      // Hard delete - completely remove the record
+      // Product images will be automatically deleted due to CASCADE constraint
+      const deleteQuery = `DELETE FROM products WHERE id = $1`;
+      const deleteResult = await db.query(deleteQuery, [productId]);
       
-      if (result.rowCount === 0) {
-        throw new NotFoundError('Product not found or already deleted');
+      if (deleteResult.rowCount === 0) {
+        throw new NotFoundError('Product not found');
       }
 
       // Performance monitoring
@@ -508,7 +517,7 @@ export class ProductService {
         'DELETE',
         {
           productName: existingProduct.name,
-          softDelete: true
+          hardDelete: true
         }
       );
 

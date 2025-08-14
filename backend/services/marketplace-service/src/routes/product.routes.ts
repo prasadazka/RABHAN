@@ -74,7 +74,7 @@ router.put(
 );
 
 /**
- * Delete product (soft delete)
+ * Delete product (hard delete)
  * DELETE /api/v1/products/:id
  * Contractors can only delete their own products
  * Admins can delete any product

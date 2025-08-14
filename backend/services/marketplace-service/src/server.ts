@@ -514,6 +514,7 @@ class MarketplaceServer {
         const {
           contractorId,
           categoryId,
+          productCategory,
           name,
           nameAr,
           description,
@@ -536,6 +537,7 @@ class MarketplaceServer {
         const errors = [];
         if (!contractorId) errors.push('contractorId is required');
         if (!categoryId) errors.push('categoryId is required');
+        if (!productCategory) errors.push('productCategory is required');
         if (!name) errors.push('name is required');
         if (!brand) errors.push('brand is required');
         if (!price || price <= 0) errors.push('price must be greater than 0');
@@ -585,15 +587,15 @@ class MarketplaceServer {
           // Insert product
           const productResult = await client.query(`
             INSERT INTO products (
-              contractor_id, category_id, name, name_ar, description, description_ar,
+              contractor_id, category_id, product_category, name, name_ar, description, description_ar,
               slug, brand, model, sku, specifications, price, currency, vat_included,
               stock_quantity, stock_status, status, approval_status,
               created_at, updated_at
             ) VALUES (
-              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), NOW()
+              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW()
             ) RETURNING *
           `, [
-            contractorId, categoryId, name, nameAr, description, descriptionAr,
+            contractorId, categoryId, productCategory, name, nameAr, description, descriptionAr,
             slug, brand, model, sku, JSON.stringify(specifications || {}), price, currency, vatIncluded,
             stockQuantity,
             stockQuantity > 10 ? 'IN_STOCK' : stockQuantity > 0 ? 'LOW_STOCK' : 'OUT_OF_STOCK',
@@ -1137,7 +1139,7 @@ class MarketplaceServer {
       }
     });
 
-    // Delete product endpoint (soft delete)
+    // Delete product endpoint (hard delete)
     this.app.delete('/api/v1/products/:productId', async (req, res) => {
       try {
         const { productId } = req.params;
@@ -1149,30 +1151,40 @@ class MarketplaceServer {
           });
         }
 
-        // Soft delete - update status to INACTIVE instead of removing record
+        // Get product info before deletion for logging
+        const productInfo = await db.query(`
+          SELECT id, name FROM products WHERE id = $1
+        `, [productId]);
+
+        if (productInfo.rows.length === 0) {
+          return res.status(404).json({
+            success: false,
+            error: 'Product not found'
+          });
+        }
+
+        // Hard delete - completely remove the record
+        // Images will be automatically deleted due to CASCADE constraint
         const result = await db.query(`
-          UPDATE products 
-          SET status = 'INACTIVE', updated_at = NOW()
-          WHERE id = $1 AND status != 'INACTIVE'
-          RETURNING id, name, status
+          DELETE FROM products WHERE id = $1 RETURNING id
         `, [productId]);
 
         if (result.rows.length === 0) {
           return res.status(404).json({
             success: false,
-            error: 'Product not found or already inactive'
+            error: 'Product not found'
           });
         }
 
-        const deletedProduct = result.rows[0];
-        console.log(`🗑️ Product deleted: ${deletedProduct.name} (${deletedProduct.id})`);
+        const productName = productInfo.rows[0].name;
+        console.log(`🗑️ Product permanently deleted: ${productName} (${productId})`);
 
         res.json({
           success: true,
           message: 'Product deleted successfully',
           data: { 
-            id: deletedProduct.id,
-            status: deletedProduct.status
+            id: productId,
+            deleted: true
           }
         });
 
