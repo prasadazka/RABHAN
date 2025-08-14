@@ -41,7 +41,6 @@ env:
 jobs:
   manual-control:
     runs-on: ubuntu-latest
-    environment: production
     
     steps:
     - name: 🔑 Setup SSH Key

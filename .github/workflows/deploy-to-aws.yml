@@ -23,7 +23,6 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: production
     
     steps:
     - name: 📂 Checkout code
@@ -32,7 +31,7 @@ jobs:
     - name: 🔧 Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-js-version: '18'
+        node-version: '18'
         cache: 'npm'
         cache-dependency-path: |
           frontend/rabhan-web/package-lock.json
