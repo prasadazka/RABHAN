@@ -1,0 +1,54 @@
+name: Deploy RABHAN to AWS
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ec2-16-170-220-109.eu-north-1.compute.amazonaws.com >> ~/.ssh/known_hosts
+        
+    - name: Deploy to AWS
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@ec2-16-170-220-109.eu-north-1.compute.amazonaws.com '
+          cd ~/rabhan || exit 1
+          git pull origin main || exit 1
+          
+          # Install dependencies only if package.json changed
+          for service in auth-service user-service contractor-service document-service admin-service marketplace-service quote-service solar-calculator-service document-proxy-service; do
+            if [ -d "backend/services/$service" ]; then
+              cd backend/services/$service
+              if [ -f package.json ]; then
+                npm install --production
+                if [ -f tsconfig.json ]; then
+                  npm run build
+                fi
+              fi
+              cd ~/rabhan
+            fi
+          done
+          
+          # Install frontend dependencies
+          cd frontend/rabhan-web
+          npm install --production
+          npm run build
+          cd ~/rabhan
+          
+          # Restart services with PM2
+          pm2 restart all || pm2 start ecosystem.config.js
+          
+          # Restart nginx
+          sudo systemctl reload nginx
+        '
