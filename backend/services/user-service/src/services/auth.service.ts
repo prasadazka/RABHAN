@@ -76,7 +76,7 @@ export class AuthService {
   // Verify user exists and token is valid
   async verifyUser(userId: string, authToken: string): Promise<AuthUser | null> {
     try {
-      const response = await this.client.get(`/api/auth/users/${userId}`, {
+      const response = await this.client.get(`/users/${userId}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -109,7 +109,7 @@ export class AuthService {
   // Validate JWT token
   async validateToken(token: string): Promise<any> {
     try {
-      const response = await this.client.post('/api/auth/validate', {
+      const response = await this.client.post('/validate', {
         token
       });
 
@@ -125,7 +125,7 @@ export class AuthService {
   // Get user by national ID (for admin operations)
   async getUserByNationalId(nationalId: string, adminToken: string): Promise<AuthUser | null> {
     try {
-      const response = await this.client.get('/api/auth/users/by-national-id', {
+      const response = await this.client.get('/users/by-national-id', {
         params: { nationalId },
         headers: {
           'Authorization': `Bearer ${adminToken}`
@@ -147,7 +147,7 @@ export class AuthService {
       console.log('🔍 AuthService: Making request to auth service profile endpoint');
       console.log('🔍 AuthService: Token:', authToken?.substring(0, 20) + '...');
       
-      const response = await this.client.get(`/api/auth/profile`, {
+      const response = await this.client.get(`/profile`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'X-Requesting-Service': 'user-service'

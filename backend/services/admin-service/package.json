@@ -1,0 +1,199 @@
+{
+  "name": "@rabhan/admin-service",
+  "version": "1.0.0",
+  "description": "RABHAN Admin Management Service - Saudi Arabia's Solar BNPL Platform",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "setup:db": "node scripts/setup-database.js",
+    "migrate": "node scripts/run-migration.js",
+    "seed": "node scripts/seed-data.js",
+    "performance:test": "jest --testPathPattern=performance",
+    "security:audit": "npm audit --production",
+    "sama:compliance": "jest --testPathPattern=sama-compliance"
+  },
+  "keywords": [
+    "rabhan",
+    "solar",
+    "bnpl",
+    "admin",
+    "saudi-arabia",
+    "sama-compliant",
+    "microservices",
+    "fintech",
+    "renewable-energy"
+  ],
+  "author": "RABHAN Development Team",
+  "license": "PROPRIETARY",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-async-errors": "^3.1.1",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "http-status-codes": "^2.3.0",
+    "ioredis": "^5.3.2",
+    "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.43",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "pdfkit": "^0.14.0",
+    "pg": "^8.11.3",
+    "prom-client": "^13.2.0",
+    "qrcode": "^1.5.3",
+    "redis": "^4.6.12",
+    "sharp": "^0.33.1",
+    "speakeasy": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.7.5",
+    "@types/cookie-parser": "^1.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/crypto-js": "^4.2.1",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.8",
+    "@types/joi": "^17.2.3",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/lodash": "^4.14.202",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.10.4",
+    "@types/pg": "^8.15.5",
+    "@types/qrcode": "^1.5.5",
+    "@types/sharp": "^0.32.0",
+    "@types/speakeasy": "^2.0.10",
+    "@types/supertest": "^2.0.16",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "eslint": "^8.55.0",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "lint-staged": "^15.2.0",
+    "nodemon": "^3.0.2",
+    "prettier": "^3.1.0",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/tests"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.ts",
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts",
+      "!src/server.ts"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.ts"
+    ],
+    "testTimeout": 30000,
+    "maxWorkers": "50%"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "extends": [
+      "eslint:recommended",
+      "@typescript-eslint/recommended"
+    ],
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module"
+    },
+    "env": {
+      "node": true,
+      "es6": true,
+      "jest": true
+    },
+    "rules": {
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/explicit-function-return-type": "warn",
+      "no-console": "warn",
+      "prefer-const": "error"
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm run test && npm run security:audit"
+    }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rabhan-solar/rabhan-platform.git",
+    "directory": "backend/services/admin-service"
+  },
+  "bugs": {
+    "url": "https://github.com/rabhan-solar/rabhan-platform/issues"
+  },
+  "homepage": "https://rabhan.sa",
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "funding": {
+    "type": "private",
+    "url": "https://rabhan.sa/funding"
+  }
+}

@@ -46,7 +46,7 @@ export class UserModel {
 
       const query = `
         INSERT INTO user_profiles (
-          auth_user_id, region, city, district,
+          user_id, first_name, last_name, region, city, district,
           street_address, postal_code, property_type,
           property_ownership, roof_size, gps_latitude, gps_longitude,
           electricity_consumption, electricity_meter_number,
@@ -54,18 +54,20 @@ export class UserModel {
           job_title, monthly_income, years_employed,
           desired_system_size, budget_range
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
         ) RETURNING *`;
 
       const values = [
         data.userId,
+        data.firstName,
+        data.lastName,
         data.region,
         data.city,
         data.district,
         data.streetAddress,
         data.postalCode,
-        data.propertyType.toUpperCase(),
-        data.propertyOwnership.toUpperCase(),
+        data.propertyType.toLowerCase(),
+        data.propertyOwnership.toLowerCase(),
         data.roofSize,
         data.gpsLatitude,
         data.gpsLongitude,
