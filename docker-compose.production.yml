@@ -1,0 +1,310 @@
+version: '3.8'
+
+services:
+  # Database Services
+  postgres:
+    image: postgres:15-alpine
+    container_name: rabhan-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: rabhan_auth,rabhan_user,rabhan_contractor,rabhan_document,rabhan_admin,rabhan_quote,rabhan_marketplace
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+    ports:
+      - "5432:5432"
+    networks:
+      - rabhan-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: rabhan-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - rabhan-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "auth", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend Services
+  auth-service:
+    build:
+      context: ./backend/services/auth-service
+      dockerfile: Dockerfile
+    container_name: rabhan-auth-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/rabhan_auth
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+    ports:
+      - "3001:3001"
+    networks:
+      - rabhan-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  user-service:
+    build:
+      context: ./backend/services/user-service
+      dockerfile: Dockerfile
+    container_name: rabhan-user-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/rabhan_user
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+      JWT_SECRET: ${JWT_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:3001/api/auth
+      DOCUMENT_SERVICE_URL: http://document-service:3003/api/document
+    ports:
+      - "3002:3002"
+    networks:
+      - rabhan-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    volumes:
+      - user_uploads:/app/uploads
+
+  document-service:
+    build:
+      context: ./backend/services/document-service
+      dockerfile: Dockerfile
+    container_name: rabhan-document-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/rabhan_document
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/2
+      JWT_SECRET: ${JWT_SECRET}
+      UPLOAD_DIR: /app/uploads
+      MAX_FILE_SIZE: 10485760
+    ports:
+      - "3003:3003"
+    networks:
+      - rabhan-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - document_uploads:/app/uploads
+
+  contractor-service:
+    build:
+      context: ./backend/services/contractor-service
+      dockerfile: Dockerfile
+    container_name: rabhan-contractor-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/rabhan_contractor
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "3004:3004"
+    networks:
+      - rabhan-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  solar-calculator-service:
+    build:
+      context: ./backend/services/solar-calculator-service
+      dockerfile: Dockerfile
+    container_name: rabhan-solar-calculator
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3005
+    ports:
+      - "3005:3005"
+    networks:
+      - rabhan-network
+
+  admin-service:
+    build:
+      context: ./backend/services/admin-service
+      dockerfile: Dockerfile
+    container_name: rabhan-admin-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3006
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/rabhan_admin
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/3
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "3006:3006"
+    networks:
+      - rabhan-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  marketplace-service:
+    build:
+      context: ./backend/services/marketplace-service
+      dockerfile: Dockerfile
+    container_name: rabhan-marketplace-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3007
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/rabhan_marketplace
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - "3007:3007"
+    networks:
+      - rabhan-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - marketplace_uploads:/app/uploads
+
+  document-proxy-service:
+    build:
+      context: ./backend/services/document-proxy-service
+      dockerfile: Dockerfile
+    container_name: rabhan-document-proxy
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3008
+    ports:
+      - "3008:3008"
+    networks:
+      - rabhan-network
+
+  quote-service:
+    build:
+      context: ./backend/services/quote-service
+      dockerfile: Dockerfile
+    container_name: rabhan-quote-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3009
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/rabhan_quote
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/4
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "3009:3009"
+    networks:
+      - rabhan-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Frontend Services
+  frontend:
+    build:
+      context: ./frontend/rabhan-web
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        - VITE_APP_ENV=production
+    container_name: rabhan-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - rabhan-network
+
+  admin-frontend:
+    build:
+      context: ./frontend/admin-web
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        - VITE_APP_ENV=production
+    container_name: rabhan-admin-frontend
+    restart: unless-stopped
+    ports:
+      - "3010:80"
+    networks:
+      - rabhan-network
+
+  # Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: rabhan-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./ssl:/etc/nginx/ssl
+      - nginx_logs:/var/log/nginx
+    networks:
+      - rabhan-network
+    depends_on:
+      - frontend
+      - admin-frontend
+      - auth-service
+      - user-service
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  user_uploads:
+    driver: local
+  document_uploads:
+    driver: local
+  marketplace_uploads:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  rabhan-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
