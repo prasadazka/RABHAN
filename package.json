@@ -63,13 +63,8 @@
     "security:fix": "npm audit fix --recursive",
     "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,ts,tsx,json,md}\"",
-    "prepare": "husky install",
-    "postinstall": "npm run install:all"
+    "prepare": "husky install"
   },
-  "workspaces": [
-    "backend/services/*",
-    "frontend/*"
-  ],
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
