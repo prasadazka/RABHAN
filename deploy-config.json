@@ -1,0 +1,33 @@
+{
+  "environments": {
+    "local": {
+      "frontend_port": 3000,
+      "services": {
+        "auth": { "port": 3001, "url": "/api/auth" },
+        "user": { "port": 3002, "url": "/api/users" },
+        "document": { "port": 3003, "url": "/api/documents" },
+        "contractor": { "port": 3004, "url": "/api/contractors" },
+        "solar": { "port": 3005, "url": "/api/solar-calculator" },
+        "admin": { "port": 3006, "url": "/api/admin" },
+        "marketplace": { "port": 3007, "url": "/api/marketplace" },
+        "document-proxy": { "port": 3008, "url": "/api/document-proxy" },
+        "quote": { "port": 3009, "url": "/api/quotes" }
+      }
+    },
+    "production": {
+      "server_ip": "16.170.220.109",
+      "nginx_port": 80,
+      "services": {
+        "auth": { "port": 3001, "url": "/api/auth" },
+        "user": { "port": 3002, "url": "/api/users" },
+        "document": { "port": 3003, "url": "/api/documents" },
+        "contractor": { "port": 3004, "url": "/api/contractors" },
+        "solar": { "port": 3005, "url": "/api/solar-calculator" },
+        "admin": { "port": 3006, "url": "/api/admin" },
+        "marketplace": { "port": 3007, "url": "/api/marketplace" },
+        "document-proxy": { "port": 3008, "url": "/api/document-proxy" },
+        "quote": { "port": 3009, "url": "/api/quotes" }
+      }
+    }
+  }
+}

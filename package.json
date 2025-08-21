@@ -1,4 +1,75 @@
 {
+  "name": "@rabhan/platform",
+  "version": "1.0.0",
+  "description": "RABHAN Solar BNPL Platform - Complete SAMA-compliant solar energy financing platform for Saudi Arabia",
+  "private": true,
+  "scripts": {
+    "setup": "node scripts/setup-interactive.js",
+    "setup:auto": "bash scripts/setup-development.sh",
+    "setup:windows": "scripts\\setup-development.bat",
+    "start": "concurrently -n \"auth,user,contractor,document,quote,admin,marketplace,proxy,web,admin-ui\" -c \"blue,green,yellow,magenta,cyan,red,orange,purple,white,gray\" \"npm run start:auth\" \"npm run start:user\" \"npm run start:contractor\" \"npm run start:document\" \"npm run start:quote\" \"npm run start:admin\" \"npm run start:marketplace\" \"npm run start:proxy\" \"npm run start:web\" \"npm run start:admin-ui\"",
+    "start:backend": "concurrently -n \"auth,user,contractor,document,quote,admin,marketplace,proxy\" -c \"blue,green,yellow,magenta,cyan,red,orange,purple\" \"npm run start:auth\" \"npm run start:user\" \"npm run start:contractor\" \"npm run start:document\" \"npm run start:quote\" \"npm run start:admin\" \"npm run start:marketplace\" \"npm run start:proxy\"",
+    "start:frontend": "concurrently -n \"web,admin-ui\" -c \"white,gray\" \"npm run start:web\" \"npm run start:admin-ui\"",
+    "start:auth": "cd backend/services/auth-service && npm run dev",
+    "start:user": "cd backend/services/user-service && npm run dev",
+    "start:contractor": "cd backend/services/contractor-service && npm run dev",
+    "start:document": "cd backend/services/document-service && npm run dev",
+    "start:quote": "cd backend/services/quote-service && npm run dev",
+    "start:admin": "cd backend/services/admin-service && npm run dev",
+    "start:marketplace": "cd backend/services/marketplace-service && npm run dev",
+    "start:proxy": "cd backend/services/document-proxy-service && npm run dev",
+    "start:web": "cd frontend/rabhan-web && npm run dev",
+    "start:admin-ui": "cd frontend/admin-dashboard && npm run dev",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "concurrently \"cd backend/services/auth-service && npm install\" \"cd backend/services/user-service && npm install\" \"cd backend/services/contractor-service && npm install\" \"cd backend/services/document-service && npm install\" \"cd backend/services/quote-service && npm install\" \"cd backend/services/admin-service && npm install\" \"cd backend/services/marketplace-service && npm install\" \"cd backend/services/document-proxy-service && npm install\"",
+    "install:frontend": "concurrently \"cd frontend/rabhan-web && npm install\" \"cd frontend/admin-dashboard && npm install\"",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "concurrently \"cd backend/services/auth-service && npm run build\" \"cd backend/services/user-service && npm run build\" \"cd backend/services/contractor-service && npm run build\" \"cd backend/services/document-service && npm run build\" \"cd backend/services/quote-service && npm run build\" \"cd backend/services/admin-service && npm run build\" \"cd backend/services/marketplace-service && npm run build\" \"cd backend/services/document-proxy-service && npm run build\"",
+    "build:frontend": "concurrently \"cd frontend/rabhan-web && npm run build\" \"cd frontend/admin-dashboard && npm run build\"",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "concurrently \"cd backend/services/auth-service && npm test\" \"cd backend/services/user-service && npm test\" \"cd backend/services/contractor-service && npm test\" \"cd backend/services/quote-service && npm test\"",
+    "test:frontend": "concurrently \"cd frontend/rabhan-web && npm test\" \"cd frontend/admin-dashboard && npm test\"",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "concurrently \"cd backend/services/auth-service && npm run lint\" \"cd backend/services/user-service && npm run lint\" \"cd backend/services/contractor-service && npm run lint\" \"cd backend/services/quote-service && npm run lint\"",
+    "lint:frontend": "concurrently \"cd frontend/rabhan-web && npm run lint\" \"cd frontend/admin-dashboard && npm run lint\"",
+    "lint:fix": "npm run lint:fix:backend && npm run lint:fix:frontend",
+    "lint:fix:backend": "concurrently \"cd backend/services/auth-service && npm run lint:fix\" \"cd backend/services/user-service && npm run lint:fix\" \"cd backend/services/contractor-service && npm run lint:fix\" \"cd backend/services/quote-service && npm run lint:fix\"",
+    "lint:fix:frontend": "concurrently \"cd frontend/rabhan-web && npm run lint:fix\" \"cd frontend/admin-dashboard && npm run lint:fix\"",
+    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
+    "typecheck:backend": "concurrently \"cd backend/services/auth-service && npm run typecheck\" \"cd backend/services/user-service && npm run typecheck\" \"cd backend/services/contractor-service && npm run typecheck\" \"cd backend/services/quote-service && npm run typecheck\"",
+    "typecheck:frontend": "concurrently \"cd frontend/rabhan-web && npm run typecheck\" \"cd frontend/admin-dashboard && npm run type-check\"",
+    "migrate": "npm run migrate:auth && npm run migrate:user && npm run migrate:contractor && npm run migrate:quote && npm run migrate:admin && npm run migrate:marketplace",
+    "migrate:auth": "cd backend/services/auth-service && npm run migrate",
+    "migrate:user": "cd backend/services/user-service && npm run migrate",
+    "migrate:contractor": "cd backend/services/contractor-service && npm run migrate",
+    "migrate:quote": "cd backend/services/quote-service && npm run migrate",
+    "migrate:admin": "cd backend/services/admin-service && npm run migrate",
+    "migrate:marketplace": "cd backend/services/marketplace-service && npm run migrate",
+    "db:reset": "npm run db:drop && npm run db:create && npm run migrate",
+    "db:create": "node scripts/create-databases.js",
+    "db:drop": "node scripts/drop-databases.js",
+    "health": "node scripts/health-check.js",
+    "status": "npm run health",
+    "logs": "node scripts/view-logs.js",
+    "clean": "npm run clean:backend && npm run clean:frontend && npm run clean:root",
+    "clean:backend": "concurrently \"cd backend/services/auth-service && rm -rf node_modules dist\" \"cd backend/services/user-service && rm -rf node_modules dist\" \"cd backend/services/contractor-service && rm -rf node_modules dist\" \"cd backend/services/document-service && rm -rf node_modules dist\" \"cd backend/services/quote-service && rm -rf node_modules dist\" \"cd backend/services/admin-service && rm -rf node_modules dist\" \"cd backend/services/marketplace-service && rm -rf node_modules dist\" \"cd backend/services/document-proxy-service && rm -rf node_modules dist\"",
+    "clean:frontend": "concurrently \"cd frontend/rabhan-web && rm -rf node_modules dist\" \"cd frontend/admin-dashboard && rm -rf node_modules dist\"",
+    "clean:root": "rm -rf node_modules logs/*.log",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "security:audit": "npm audit --recursive",
+    "security:fix": "npm audit fix --recursive",
+    "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,tsx,json,md}\"",
+    "prepare": "husky install",
+    "postinstall": "npm run install:all"
+  },
+  "workspaces": [
+    "backend/services/*",
+    "frontend/*"
+  ],
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
@@ -6,5 +77,48 @@
     "jsonwebtoken": "^9.0.2",
     "node-fetch": "^2.7.0",
     "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.1",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "rabhan",
+    "solar",
+    "bnpl",
+    "fintech",
+    "saudi-arabia",
+    "sama-compliant",
+    "microservices",
+    "react",
+    "typescript",
+    "renewable-energy"
+  ],
+  "author": "RABHAN Development Team",
+  "license": "PROPRIETARY",
+  "homepage": "https://rabhan.sa",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rabhan-solar/rabhan-platform.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rabhan-solar/rabhan-platform/issues"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }

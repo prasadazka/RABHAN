@@ -1,0 +1,30 @@
+// Products endpoint for admin dashboard  
+app.get("/api/products", async (req, res) => {
+  try {
+    const { Pool } = require("pg");
+    const pool = new Pool({
+      host: "localhost",
+      port: 5432,
+      database: "rabhan_marketplace",
+      user: "postgres",
+      password: "rabhan_secure_db_2024"
+    });
+
+    const result = await pool.query("SELECT * FROM products ORDER BY created_at DESC");
+    
+    await pool.end();
+
+    res.json({
+      success: true,
+      data: result.rows,
+      total: result.rows.length
+    });
+  } catch (error) {
+    console.error("Products endpoint error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch products",
+      message: error.message
+    });
+  }
+});

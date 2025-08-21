@@ -1,0 +1,3 @@
+public IP: 16.170.220.109
+
+ssh -i "rabhan-key.pem" ubuntu@ec2-16-170-220-109.eu-north-1.compute.amazonaws.com

@@ -1,0 +1,33 @@
+Inverters:
+Model	Power Rate	Type	MPPTs	MPPT Range (V)	 Max Input Current (A) 	Output Phase	Communication	 Weight (kg) 	Price SAR
+DFY-3.6KW	3.6KW	Hybrid	1	40-450V	18A	3-phase	RS485/RS232/USB	6.3	1800
+DFY-5.5KW	5.5KW	Hybrid	1	120-450V	22A	3-phase	RS485/RS232/USB	8.7	2500
+DFY-6.2KW	6.2KW	Hybrid	1	120-450V	22A	3-phase	RS485/RS232/USB	8.7	2600
+DFY-13.2KVA 48V	13.2KW	Hybrid	1	120-450V	22A*2(44A)	3-phase	RS485/RS232/USB	20	5600
+
+
+
+Batteries:
+Model	Capacity	Voltage	Current (Ah)	Cycle Life	Communication	Weight (kg)	Dimensions (mm)	Price SAR
+D-200Ah 12.8V	2.56 KWH	12.8V	200Ah	6000	Bluetooth	29.5	270*520*230	2750
+D-300Ah 12.8V	3.84 KWH	12.8V	300Ah	6000	Bluetooth	30.2	270*520*230	3500
+D-200Ah 25.6V	5.12 KWH	25.6V	200Ah	6000	Bluetooth	33.5	270*520*230	4800
+Nep LG1-B5.1	5.12 KWH	51.2V	100Ah	6000	CAN/RS485	45	440*133*540	5200
+SL-300 7.5KW	7.68 KWH	25.6V	300Ah	5500	CAW/RS485	70	880*630*470	6000
+Sunny - Wall 10KWh	10.24 KWH	51.2V	200Ah	6000	4G/Wifi/Ethernet	78	800*400*260	8900
+Nep LG1-B10.0-01	10.49 KWH	51.2V	205Ah	6000	CAN/RS485	80	380*650*250	9500
+SL-300 15KW	15.36 KWH	51.2V	300Ah	5500	CAW/RS487	140	880*630*470	9800
+TAI - Rolling 15KW	15.36 KWH	51.2V	300Ah	6000	4G/WIFI/Ethernet	140	880*630*470	9900
+SL-300 L2	20.48 KWH	51.2V	400Ah	5500	CAW/RS487	124.5	1290*710*350	10200
+
+
+Pannels:
+Model	Max Power	Binding Specifications	Efficiency	Voltage	Working Current	Working Temperature	Weight (kg)	Dimensions (mm)	Price SAR
+Sunny P-450	450W	Every 36 pieces	≥21.46%	49.3V/work41.5V	A ≥10.86	-40°C ~ +85°C	23KG	1909 x 1038 x 30 mm	400
+Sunny P-550	550W	Every 36 pieces	≥21.46%	52.2V/work43.3V	A ≥13.93	-40°C ~ +85°C	27KG	2278 x 1134 x 30 mm	500
+
+
+Full system:
+Model	Power	Peak	C output	 Battery Capacity	Charging Power	Solar Configuration	Generating Capacity	Dimensions 1 (mm)	Dimensions 2 (mm)	Weight	Price SAR
+Sunny - 6KW / 16KW	6 KW	12KW	50Hz/AC220V*2	16KWH LiFepo4	3.2 KW	580W*8PS	22KW  20 square	500*280*1080MM	550*430*1130MM	143KG+285KG	17000
+Sunny - 12KW / 32KW	12 KW	24KW	50Hz/AC220V*2	32KWH LiFepo4	7 KW	580W*16PS	45KW  40 square	660*300*1600MM	730*430*1760MM	240KG+485KG	30000
